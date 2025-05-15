@@ -1,0 +1,49 @@
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
+
+// Initialize express app
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
+
+// API routes
+app.use('/api/items', require('./routes/itemRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode);
+  res.json({
+    message: err.message,
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+  });
+});
+
+// Connect to MongoDB
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB Connected');
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error(`Error connecting to MongoDB: ${err.message}`);
+    process.exit(1);
+  }); 
