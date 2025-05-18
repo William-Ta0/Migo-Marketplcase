@@ -25,6 +25,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Register user with Firebase and save to MongoDB
@@ -40,13 +41,15 @@ export const AuthProvider = ({ children }) => {
       // Get the ID token
       const idToken = await user.getIdToken();
 
-      // Register user in MongoDB
+      // Create user document in MongoDB
       await axios.post(
-        `${API_URL}`,
+        `${API_URL}/register`,
         {
           name,
           email,
           firebaseUid: user.uid,
+          authProvider: 'email',
+          role: null,
         },
         {
           headers: {
@@ -76,23 +79,24 @@ export const AuthProvider = ({ children }) => {
       // Get the ID token
       const idToken = await user.getIdToken();
       
-      // Check if user exists in MongoDB, if not register them
       try {
-        // Try to get the profile, if it fails, the user doesn't exist in our DB
+        // Try to get the user profile
         await axios.get(`${API_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
         });
       } catch (error) {
-        // User doesn't exist in MongoDB, register them
+        // If user doesn't exist in MongoDB, create them
         if (error.response && error.response.status === 404) {
           await axios.post(
-            `${API_URL}`,
+            `${API_URL}/register`,
             {
               name: user.displayName || 'Google User',
               email: user.email,
               firebaseUid: user.uid,
+              authProvider: 'google',
+              role: null,
             },
             {
               headers: {
@@ -101,7 +105,7 @@ export const AuthProvider = ({ children }) => {
             }
           );
         } else {
-          console.error('Error checking user profile:', error);
+          throw error;
         }
       }
       
@@ -113,15 +117,60 @@ export const AuthProvider = ({ children }) => {
 
   // Sign out user from Firebase
   const logout = () => {
+    setUserRole(null);
     return signOut(auth);
   };
 
-  // Get current user's profile from backend
+  // Get user's role from MongoDB
+  const getUserRole = async (uid) => {
+    try {
+      const user = await auth.currentUser;
+      if (!user) return null;
+
+      const idToken = await user.getIdToken();
+      const response = await axios.get(`${API_URL}/profile`, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      return response.data.role;
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      return null;
+    }
+  };
+
+  // Update user's role in MongoDB
+  const updateUserRole = async (uid, role) => {
+    try {
+      const user = await auth.currentUser;
+      if (!user) throw new Error('No user logged in');
+
+      const idToken = await user.getIdToken();
+      await axios.put(
+        `${API_URL}/role`,
+        { role },
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        }
+      );
+      setUserRole(role);
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      throw error;
+    }
+  };
+
+  // Get user profile from MongoDB
   const getUserProfile = async () => {
     try {
-      if (!currentUser) return null;
+      const user = await auth.currentUser;
+      if (!user) return null;
 
-      const idToken = await currentUser.getIdToken();
+      const idToken = await user.getIdToken();
       const response = await axios.get(`${API_URL}/profile`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -131,30 +180,26 @@ export const AuthProvider = ({ children }) => {
       return response.data;
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      return null;
+      throw error;
     }
   };
 
-  // Update user profile
-  const updateUserProfile = async (userData) => {
+  // Update user profile in MongoDB
+  const updateUserProfile = async (profileData) => {
     try {
-      if (!currentUser) return null;
+      const user = await auth.currentUser;
+      if (!user) throw new Error('No user logged in');
 
-      const idToken = await currentUser.getIdToken();
+      const idToken = await user.getIdToken();
       const response = await axios.put(
         `${API_URL}/profile`,
-        userData,
+        profileData,
         {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
         }
       );
-
-      // Update Firebase display name if provided
-      if (userData.name) {
-        await updateProfile(currentUser, { displayName: userData.name });
-      }
 
       return response.data;
     } catch (error) {
@@ -165,8 +210,12 @@ export const AuthProvider = ({ children }) => {
 
   // Set up auth state observer
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      if (user) {
+        const role = await getUserRole(user.uid);
+        setUserRole(role);
+      }
       setLoading(false);
     });
 
@@ -175,12 +224,15 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     currentUser,
+    userRole,
+    setUserRole: (role) => updateUserRole(currentUser?.uid, role),
     register,
     login,
     googleLogin,
     logout,
+    getUserRole,
     getUserProfile,
-    updateUserProfile,
+    updateUserProfile
   };
 
   return (
