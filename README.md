@@ -1,21 +1,75 @@
-# Migo Marketplace
+# MERN Stack Item Manager Application
 
-## Sensitive Credentials Management
+A simple web application for managing items using the MERN stack (MongoDB, Express, React, Node.js).
 
-### Service Account Keys
+## Project Structure
 
-For security reasons, service account keys and other sensitive credentials are not stored in this repository. Instead:
+- `backend/`: Node.js and Express server
+- `frontend/`: React frontend application
 
-1. The structure of the required credentials is provided in example files: `backend/serviceAccountKey.example.json`
-2. To set up your local development environment:
-   - Create a copy of the example file, removing the `.example` part of the filename
-   - Fill in the actual credentials (contact a team admin for access)
-   - Never commit these files to Git (they are added to .gitignore)
+## Features
 
-### Environment Variables
+- Create, read, update, and delete items
+- Mark items as completed
+- RESTful API
 
-For production deployments, use environment variables instead of JSON files. You can load these variables in your application code rather than using physical files.
+## Getting Started
 
-## Development Setup
+### Prerequisites
 
-(Additional setup instructions here)
+- Node.js (v14+ recommended)
+- MongoDB (local or Atlas)
+- npm (v6+ recommended)
+
+### Installation
+
+1. Clone the repository
+
+2. Install backend dependencies
+
+```
+cd backend
+npm install
+```
+
+3. Install frontend dependencies
+
+```
+cd frontend
+npm install
+```
+
+4. Set up your environment variables
+   Edit the `.env` file in the backend directory to configure your MongoDB connection string and other settings.
+
+### Running the application
+
+#### Backend
+
+```
+cd backend
+npm run dev
+```
+
+#### Frontend
+
+```
+cd frontend
+npm start
+```
+
+The frontend will be available at http://localhost:3000 and the backend API at http://localhost:5000.
+
+## API Endpoints
+
+- `GET /api/items` - Get all items
+- `GET /api/items/:id` - Get an item by ID
+- `POST /api/items` - Create a new item
+- `PUT /api/items/:id` - Update an item
+- `DELETE /api/items/:id` - Delete an item
+
+## Technology Stack
+
+- **Frontend**: React, React Router, Axios
+- **Backend**: Node.js, Express
+- **Database**: MongoDB with Mongoose ODM
