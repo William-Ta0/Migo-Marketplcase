@@ -17,20 +17,8 @@ const RoleSelection = () => {
       // Update role using the AuthContext function (which now uses MongoDB)
       await setUserRole(role);
 
-      // Redirect based on role
-      switch (role) {
-        case 'customer':
-          navigate('/');
-          break;
-        case 'vendor':
-          navigate('/profile');
-          break;
-        case 'admin':
-          navigate('/admin');
-          break;
-        default:
-          navigate('/');
-      }
+      // After role selection, always navigate to profile page
+      navigate('/profile');
     } catch (err) {
       console.error('Error assigning role:', err);
       setError('Failed to assign role. Please try again.');

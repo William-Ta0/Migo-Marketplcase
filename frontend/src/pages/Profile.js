@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import DeleteAccount from '../components/DeleteAccount';
 
 const Profile = () => {
   const { currentUser, getUserProfile, updateUserProfile } = useAuth();
@@ -104,6 +105,11 @@ const Profile = () => {
           {updateLoading ? 'Updating...' : 'Update Profile'}
         </button>
       </form>
+
+      <div className="danger-zone" style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #ff4444', borderRadius: '4px' }}>
+        <h3 style={{ color: '#ff4444', marginBottom: '1rem' }}>Danger Zone</h3>
+        <DeleteAccount />
+      </div>
     </div>
   );
 };

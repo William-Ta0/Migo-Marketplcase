@@ -34,6 +34,16 @@ function App() {
               }
             />
             
+            {/* Profile route - accessible to all authenticated users */}
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              }
+            />
+            
             {/* Customer routes */}
             <Route
               path="/items/:id"
@@ -45,14 +55,6 @@ function App() {
             />
             
             {/* Vendor routes */}
-            <Route
-              path="/profile"
-              element={
-                <PrivateRoute requiredRole="vendor">
-                  <Profile />
-                </PrivateRoute>
-              }
-            />
             <Route
               path="/create-item"
               element={
