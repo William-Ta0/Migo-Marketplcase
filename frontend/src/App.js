@@ -1,40 +1,80 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
-
-// Pages
+import { AuthProvider } from './context/AuthContext';
+import Header from './components/Header';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import RoleSelection from './pages/RoleSelection';
 import Profile from './pages/Profile';
+import CreateItem from './pages/CreateItem';
+import ItemDetails from './pages/ItemDetails';
 import PrivateRoute from './components/PrivateRoute';
-
-// Auth Context
-import { AuthProvider } from './context/AuthContext';
+import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div className="App">
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route
-                path="/profile"
-                element={
-                  <PrivateRoute>
-                    <Profile />
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </main>
+          <Header />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/select-role" element={<RoleSelection />} />
+            
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <Home />
+                </PrivateRoute>
+              }
+            />
+            
+            {/* Customer routes */}
+            <Route
+              path="/items/:id"
+              element={
+                <PrivateRoute requiredRole="customer">
+                  <ItemDetails />
+                </PrivateRoute>
+              }
+            />
+            
+            {/* Vendor routes */}
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute requiredRole="vendor">
+                  <Profile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/create-item"
+              element={
+                <PrivateRoute requiredRole="vendor">
+                  <CreateItem />
+                </PrivateRoute>
+              }
+            />
+            
+            {/* Admin routes */}
+            <Route
+              path="/admin/*"
+              element={
+                <PrivateRoute requiredRole="admin">
+                  <div>Admin Dashboard (To be implemented)</div>
+                </PrivateRoute>
+              }
+            />
+          </Routes>
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

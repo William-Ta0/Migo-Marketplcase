@@ -5,6 +5,7 @@ const Profile = () => {
   const { currentUser, getUserProfile, updateUserProfile } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,9 +18,11 @@ const Profile = () => {
         if (userProfile) {
           setName(userProfile.name);
           setEmail(userProfile.email);
+          setRole(userProfile.role || 'No role assigned');
         } else {
           setName(currentUser.displayName || '');
           setEmail(currentUser.email || '');
+          setRole('No role assigned');
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -57,6 +60,9 @@ const Profile = () => {
     return <div>Loading...</div>;
   }
 
+  // Capitalize the first letter of the role
+  const displayRole = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'No role assigned';
+
   return (
     <div className="form-container">
       <h2>Profile</h2>
@@ -80,6 +86,15 @@ const Profile = () => {
             disabled
           />
           <small>Email cannot be changed</small>
+        </div>
+        <div className="form-control">
+          <label>Role</label>
+          <input
+            type="text"
+            value={displayRole}
+            disabled
+          />
+          <small>Role can only be changed during registration</small>
         </div>
         <button
           disabled={updateLoading}

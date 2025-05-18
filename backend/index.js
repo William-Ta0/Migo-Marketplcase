@@ -2,9 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
+
+// Initialize Firebase Admin (this will handle the initialization)
+require('./config/firebaseAdmin');
 
 // Initialize express app
 const app = express();
