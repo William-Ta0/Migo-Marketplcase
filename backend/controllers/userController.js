@@ -109,9 +109,38 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+// @desc    Delete user account
+// @route   DELETE /api/users/delete
+// @access  Private
+const deleteUser = async (req, res) => {
+  try {
+    const firebaseUid = req.user.uid;
+
+    // Find user in MongoDB
+    const user = await User.findOne({ firebaseUid });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Delete user from Firebase Auth
+    await admin.auth().deleteUser(firebaseUid);
+
+    // Delete user from MongoDB
+    await User.deleteOne({ firebaseUid });
+
+    // Note: Add any additional cleanup here (e.g., user's posts, comments, etc.)
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user account:', error);
+    res.status(500).json({ error: 'Error deleting user account' });
+  }
+};
+
 module.exports = {
   registerUser,
   getUserProfile,
   updateUserProfile,
   updateUserRole,
+  deleteUser,
 }; 

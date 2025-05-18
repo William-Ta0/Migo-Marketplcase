@@ -6,7 +6,8 @@ import {
   onAuthStateChanged,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  deleteUser
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import axios from 'axios';
@@ -208,6 +209,33 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Delete user account
+  const deleteAccount = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('No user logged in');
+
+      const idToken = await user.getIdToken();
+      
+      // Delete user from MongoDB first
+      await axios.delete(`${API_URL}/delete`, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      // Delete user from Firebase
+      await deleteUser(user);
+      
+      // Clear local state
+      setCurrentUser(null);
+      setUserRole(null);
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      throw error;
+    }
+  };
+
   // Set up auth state observer
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -232,7 +260,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     getUserRole,
     getUserProfile,
-    updateUserProfile
+    updateUserProfile,
+    deleteAccount
   };
 
   return (
