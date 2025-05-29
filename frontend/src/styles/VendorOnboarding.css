@@ -1,0 +1,781 @@
+/* VendorOnboarding.css */
+.vendor-onboarding {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Header and Progress */
+.onboarding-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  color: white;
+}
+
+.onboarding-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.progress-bar {
+  position: relative;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.progress-step .step-number {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+  background: #4299e1;
+  box-shadow: 0 0 20px rgba(66, 153, 225, 0.6);
+  transform: scale(1.1);
+}
+
+.progress-step.completed .step-number {
+  background: #48bb78;
+  box-shadow: 0 0 20px rgba(72, 187, 120, 0.6);
+}
+
+.progress-step .step-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.progress-step.active .step-label {
+  color: white;
+  font-weight: 600;
+}
+
+.progress-fill {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4299e1, #48bb78);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+/* Main Content */
+.onboarding-content {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideUp 0.6s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding-step {
+  padding: 3rem;
+  min-height: 600px;
+}
+
+.step-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.step-header h3 {
+  color: #2d3748;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.step-header p {
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+/* Alerts */
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+.alert-error {
+  background-color: #fed7d7;
+  color: #c53030;
+  border: 1px solid #feb2b2;
+}
+
+.alert-success {
+  background-color: #c6f6d5;
+  color: #2f855a;
+  border: 1px solid #9ae6b4;
+}
+
+/* Welcome Step */
+.welcome-step {
+  text-align: center;
+}
+
+.welcome-content h2 {
+  color: #2d3748;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.welcome-content > p {
+  color: #718096;
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+}
+
+.onboarding-overview {
+  margin-bottom: 3rem;
+}
+
+.onboarding-overview h3 {
+  color: #4a5568;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.overview-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.overview-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f7fafc;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.overview-step:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.overview-step .step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.overview-step h4 {
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.overview-step p {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.welcome-benefits {
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.welcome-benefits h3 {
+  color: #4a5568;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.welcome-benefits ul {
+  list-style: none;
+  padding: 0;
+}
+
+.welcome-benefits li {
+  padding: 0.75rem 0;
+  color: #4a5568;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Skills Step */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.category-card {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.category-card:hover {
+  border-color: #4299e1;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.category-card h4 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.subcategories {
+  margin-bottom: 1.5rem;
+}
+
+.subcategory-tag {
+  display: inline-block;
+  background: #e2e8f0;
+  color: #4a5568;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  margin: 0.25rem;
+  font-weight: 500;
+}
+
+.selected-skills {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: #f7fafc;
+  border-radius: 12px;
+}
+
+.selected-skills h4 {
+  color: #2d3748;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.skill-config {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.skill-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.skill-header h5 {
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.skill-details {
+  display: grid;
+  gap: 2rem;
+}
+
+.subcategory-selection label {
+  color: #4a5568;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4a5568;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.checkbox-label:hover {
+  background-color: #edf2f7;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #4299e1;
+}
+
+.experience-selection label {
+  color: #4a5568;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.experience-selection select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: white;
+  color: #4a5568;
+}
+
+/* Document Upload */
+.document-upload-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.document-upload {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.document-upload h4 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.document-upload p {
+  color: #718096;
+  margin-bottom: 1.5rem;
+}
+
+.upload-area {
+  border: 3px dashed #cbd5e0;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  border-color: #4299e1;
+  background: rgba(66, 153, 225, 0.05);
+}
+
+.upload-placeholder .upload-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.upload-placeholder p {
+  color: #4a5568;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.upload-placeholder small {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.document-preview {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.file-info {
+  margin-top: 1rem;
+  color: #4a5568;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.verification-info {
+  margin-top: 3rem;
+}
+
+.info-card {
+  background: #e6fffa;
+  border: 1px solid #9ae6b4;
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.info-card h4 {
+  color: #2f855a;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.info-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.info-card li {
+  color: #2f855a;
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-card li:before {
+  content: "✓";
+  font-weight: bold;
+  color: #38a169;
+}
+
+/* Review Step */
+.review-section {
+  display: grid;
+  gap: 2rem;
+}
+
+.review-card {
+  background: #f7fafc;
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.review-card h4 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.skill-summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.skill-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skill-item strong {
+  color: #2d3748;
+  font-size: 1.1rem;
+}
+
+.experience-badge {
+  display: inline-block;
+  background: #4299e1;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.skill-item p {
+  color: #718096;
+  margin: 0;
+}
+
+.status-item {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.status-item.success {
+  background: #c6f6d5;
+  border: 1px solid #9ae6b4;
+}
+
+.status-item.pending {
+  background: #fef5e7;
+  border: 1px solid #fed7a1;
+}
+
+.status-item span {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.status-item.success span {
+  color: #2f855a;
+}
+
+.status-item.pending span {
+  color: #d69e2e;
+}
+
+.status-item p {
+  color: #4a5568;
+  margin: 0;
+}
+
+.next-steps-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.next-steps-card h4 {
+  color: white;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.next-steps-card ul {
+  list-style: none;
+  padding: 0;
+}
+
+.next-steps-card li {
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.next-steps-card li:before {
+  content: "→";
+  font-weight: bold;
+  margin-top: 0.1rem;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4299e1, #3182ce);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3182ce, #2c5282);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(66, 153, 225, 0.4);
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #cbd5e0;
+}
+
+.btn-secondary:disabled {
+  background-color: #48bb78;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #c53030;
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  min-height: 36px;
+}
+
+.btn-large {
+  padding: 1.25rem 3rem;
+  font-size: 1.2rem;
+  min-height: 60px;
+}
+
+/* Step Actions */
+.step-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .vendor-onboarding {
+    padding: 1rem;
+  }
+
+  .onboarding-header h1 {
+    font-size: 2rem;
+  }
+
+  .onboarding-step {
+    padding: 2rem 1.5rem;
+    min-height: auto;
+  }
+
+  .step-header h3 {
+    font-size: 1.5rem;
+  }
+
+  .categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .document-upload-section {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .step-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .progress-steps {
+    justify-content: space-around;
+  }
+
+  .progress-step .step-label {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vendor-onboarding {
+    padding: 0.5rem;
+  }
+
+  .onboarding-step {
+    padding: 1.5rem 1rem;
+  }
+
+  .upload-area {
+    padding: 2rem 1rem;
+  }
+
+  .progress-step .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+} 

@@ -60,6 +60,67 @@ const userSchema = new mongoose.Schema({
     enum: ['customer', 'vendor', 'admin', null],
     default: null,
   },
+  // Vendor-specific fields
+  vendorInfo: {
+    skills: [{
+      category: {
+        type: String,
+        required: true,
+      },
+      subcategories: [{
+        type: String,
+        required: true,
+      }],
+      experienceLevel: {
+        type: String,
+        enum: ['beginner', 'intermediate', 'expert'],
+        default: 'intermediate'
+      }
+    }],
+    verification: {
+      status: {
+        type: String,
+        enum: ['pending', 'submitted', 'verified', 'rejected'],
+        default: 'pending'
+      },
+      idDocument: {
+        type: String,
+        default: '',
+      },
+      businessLicense: {
+        type: String,
+        default: '',
+      },
+      submittedAt: {
+        type: Date,
+      },
+      verifiedAt: {
+        type: Date,
+      }
+    },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    rating: {
+      average: {
+        type: Number,
+        default: 0,
+      },
+      count: {
+        type: Number,
+        default: 0,
+      }
+    },
+    responseRate: {
+      type: Number,
+      default: 0,
+    },
+    completedJobs: {
+      type: Number,
+      default: 0,
+    }
+  }
 }, {
   timestamps: true, // Adds createdAt and updatedAt fields
 });

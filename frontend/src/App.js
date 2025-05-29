@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import RoleSelection from './pages/RoleSelection';
 import Profile from './pages/Profile';
+import VendorOnboarding from './pages/VendorOnboarding';
 import CreateItem from './pages/CreateItem';
 import ItemDetails from './pages/ItemDetails';
 import PrivateRoute from './components/PrivateRoute';
@@ -55,6 +56,14 @@ function App() {
             />
             
             {/* Vendor routes */}
+            <Route
+              path="/vendor/onboarding"
+              element={
+                <PrivateRoute requiredRole="vendor">
+                  <VendorOnboarding />
+                </PrivateRoute>
+              }
+            />
             <Route
               path="/create-item"
               element={
