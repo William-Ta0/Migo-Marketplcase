@@ -29,6 +29,7 @@ app.get('/', (req, res) => {
 // API routes
 app.use('/api/items', require('./routes/itemRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/vendor', require('./routes/vendorRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
