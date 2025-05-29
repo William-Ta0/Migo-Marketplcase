@@ -6,7 +6,9 @@ const {
   getUserProfile,
   updateUserRole,
   updateUserProfile,
-  deleteUser
+  deleteUser,
+  uploadAvatar,
+  upload
 } = require('../controllers/userController');
 
 // Public routes
@@ -17,5 +19,6 @@ router.get('/profile', verifyToken, getUserProfile);
 router.put('/profile', verifyToken, updateUserProfile);
 router.put('/role', verifyToken, updateUserRole);
 router.delete('/delete', verifyToken, deleteUser);
+router.post('/upload-avatar', verifyToken, upload.single('avatar'), uploadAvatar);
 
 module.exports = router; 
