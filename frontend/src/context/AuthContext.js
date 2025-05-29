@@ -14,7 +14,7 @@ import axios from 'axios';
 
 // Use environment-specific API URLs
 const BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://migo-27d58.web.app/api'  // Change this to your actual backend URL when deployed
+  ? process.env.REACT_APP_API_URL || 'https://your-backend-url.com/api'  // Use environment variable or fallback
   : 'http://localhost:5001/api';
 const API_URL = `${BASE_URL}/users`;
 
@@ -209,6 +209,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Upload user avatar
+  const uploadAvatar = async (avatarFile) => {
+    try {
+      const user = await auth.currentUser;
+      if (!user) throw new Error('No user logged in');
+
+      const formData = new FormData();
+      formData.append('avatar', avatarFile);
+      
+      const idToken = await user.getIdToken();
+      const response = await axios.post(
+        `${API_URL}/upload-avatar`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      throw error;
+    }
+  };
+
   // Delete user account
   const deleteAccount = async () => {
     try {
@@ -261,6 +289,7 @@ export const AuthProvider = ({ children }) => {
     getUserRole,
     getUserProfile,
     updateUserProfile,
+    uploadAvatar,
     deleteAccount
   };
 

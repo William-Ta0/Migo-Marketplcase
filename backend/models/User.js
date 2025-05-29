@@ -15,9 +15,44 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  phoneNumber: {
+    type: String,
+    default: '',
+  },
+  address: {
+    street: {
+      type: String,
+      default: '',
+    },
+    city: {
+      type: String,
+      default: '',
+    },
+    state: {
+      type: String,
+      default: '',
+    },
+    zipCode: {
+      type: String,
+      default: '',
+    },
+    country: {
+      type: String,
+      default: '',
+    }
+  },
+  avatar: {
+    type: String,
+    default: '',
+  },
+  bio: {
+    type: String,
+    default: '',
+    maxlength: 500,
+  },
   authProvider: {
     type: String,
-    enum: ['email', 'google'],
+    enum: ['email', 'google', 'apple', 'phone'],
     required: true,
   },
   role: {

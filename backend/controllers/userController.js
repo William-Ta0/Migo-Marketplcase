@@ -1,5 +1,36 @@
 const User = require('../models/User');
 const admin = require('../config/firebaseAdmin');
+const multer = require('multer');
+const path = require('path');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/avatars/');
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + req.user.uid + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  // Accept only image files
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  }
+});
 
 // @desc    Register a new user
 // @route   POST /api/users
@@ -60,8 +91,23 @@ const updateUserProfile = async (req, res) => {
     const user = await User.findOne({ firebaseUid: req.user.uid });
 
     if (user) {
+      // Update basic fields
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
+      user.phoneNumber = req.body.phoneNumber !== undefined ? req.body.phoneNumber : user.phoneNumber;
+      user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
+      user.avatar = req.body.avatar !== undefined ? req.body.avatar : user.avatar;
+
+      // Update address fields
+      if (req.body.address) {
+        user.address = {
+          street: req.body.address.street !== undefined ? req.body.address.street : user.address.street,
+          city: req.body.address.city !== undefined ? req.body.address.city : user.address.city,
+          state: req.body.address.state !== undefined ? req.body.address.state : user.address.state,
+          zipCode: req.body.address.zipCode !== undefined ? req.body.address.zipCode : user.address.zipCode,
+          country: req.body.address.country !== undefined ? req.body.address.country : user.address.country,
+        };
+      }
 
       const updatedUser = await user.save();
 
@@ -69,6 +115,11 @@ const updateUserProfile = async (req, res) => {
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
+        phoneNumber: updatedUser.phoneNumber,
+        address: updatedUser.address,
+        avatar: updatedUser.avatar,
+        bio: updatedUser.bio,
+        role: updatedUser.role,
       });
     } else {
       res.status(404);
@@ -137,10 +188,42 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// @desc    Upload avatar image
+// @route   POST /api/users/upload-avatar
+// @access  Private
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Update user's avatar field in database
+    const user = await User.findOneAndUpdate(
+      { firebaseUid: req.user.uid },
+      { avatar: `/uploads/avatars/${req.file.filename}` },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      message: 'Avatar uploaded successfully',
+      avatar: user.avatar
+    });
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    res.status(500).json({ error: 'Error uploading avatar' });
+  }
+};
+
 module.exports = {
   registerUser,
   getUserProfile,
   updateUserProfile,
   updateUserRole,
   deleteUser,
+  uploadAvatar,
+  upload,
 }; 
