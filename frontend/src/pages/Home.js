@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Home.css';
 
@@ -17,6 +17,8 @@ const Home = () => {
   const categoriesRef = useRef(null);
   const appDownloadRef = useRef(null);
   const promotionalRef = useRef(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -195,8 +197,13 @@ const Home = () => {
   ];
 
   const handleFindServices = () => {
-    console.log('Finding services near:', address);
-    // Implementation will be added later
+    if (address.trim()) {
+      // Navigate to services with location filter
+      navigate(`/services?location=${encodeURIComponent(address.trim())}&type=${deliverySelected ? 'delivery' : 'pickup'}`);
+    } else {
+      // Navigate to categories page if no address
+      navigate('/categories');
+    }
   };
 
   const scrollServices = (direction, ref) => {
@@ -224,8 +231,10 @@ const Home = () => {
         </div>
 
         <div className="search-food">
-          <span className="search-icon">🔍</span>
-          <span>Search Services</span>
+          <button className="search-food" onClick={() => navigate('/services')}>
+            <span className="search-icon">🔍</span>
+            <span>Search Services</span>
+          </button>
         </div>
 
         <div className="header-right">
