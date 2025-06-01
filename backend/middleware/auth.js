@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const logger = require('../config/logger'); // Import Winston logger
 
 const verifyToken = async (req, res, next) => {
   try {
@@ -13,9 +14,10 @@ const verifyToken = async (req, res, next) => {
     try {
       const decodedToken = await admin.auth().verifyIdToken(token);
       req.user = decodedToken;
+      logger.info(`Token verified for user: ${decodedToken.uid}`); // Log successful token verification
       next();
     } catch (error) {
-      console.error('Error verifying token:', error);
+      logger.error('Error verifying token:', error); // Log token verification errors
       return res.status(403).json({ error: 'Invalid token' });
     }
   } catch (error) {
@@ -24,4 +26,4 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-module.exports = { verifyToken }; 
+module.exports = { verifyToken };

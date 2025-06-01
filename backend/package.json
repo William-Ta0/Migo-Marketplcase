@@ -19,7 +19,9 @@
     "firebase-admin": "^13.4.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
+    "morgan": "^1.10.0",
     "multer": "^2.0.0",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "winston": "^3.17.0"
   }
 }
