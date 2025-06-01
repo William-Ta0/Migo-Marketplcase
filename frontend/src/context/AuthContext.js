@@ -15,7 +15,7 @@ import axios from 'axios';
 // Use environment-specific API URLs
 const BASE_URL = process.env.NODE_ENV === 'production' 
   ? process.env.REACT_APP_API_URL || 'https://your-backend-url.com/api'  // Use environment variable or fallback
-  : 'http://localhost:5001/api';
+  : 'http://localhost:5555/api'; // Backend API running on port 5555 for development
 const API_URL = `${BASE_URL}/users`;
 
 const AuthContext = createContext();
@@ -35,8 +35,9 @@ export const AuthProvider = ({ children }) => {
       // Register with Firebase
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      console.log('User registered:', user.uid, email); // Added console log
 
-      // Update the user's profile with their name
+      // Update the user\'s profile with their name
       await updateProfile(user, { displayName: name });
 
       // Get the ID token
@@ -58,16 +59,26 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
+      console.log('User data saved to MongoDB for:', user.uid); // Added console log
 
       return user;
     } catch (error) {
+      console.error('Error during registration:', error); // Added console log
       throw error;
     }
   };
 
   // Sign in user with Firebase
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const login = async (email, password) => { // Made async to await and log
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('User logged in:', userCredential.user.uid, email); // Added console log
+      return userCredential;
+    } catch (error) {
+      console.warn('Unsuccessful login attempt for email:', email); // Added console log for unsuccessful attempt
+      console.error('Error during login:', error);
+      throw error;
+    }
   };
 
   // Sign in with Google
@@ -76,6 +87,7 @@ export const AuthProvider = ({ children }) => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      console.log('User logged in with Google:', user.uid, user.email); // Added console log
       
       // Get the ID token
       const idToken = await user.getIdToken();
@@ -88,7 +100,7 @@ export const AuthProvider = ({ children }) => {
           },
         });
       } catch (error) {
-        // If user doesn't exist in MongoDB, create them
+        // If user doesn\'t exist in MongoDB, create them
         if (error.response && error.response.status === 404) {
           await axios.post(
             `${API_URL}/register`,
@@ -105,21 +117,32 @@ export const AuthProvider = ({ children }) => {
               },
             }
           );
+          console.log('Google user data saved to MongoDB for:', user.uid); // Added console log
         } else {
+          console.error('Error during Google login (profile check/creation):', error); // Added console log
           throw error;
         }
       }
       
       return user;
     } catch (error) {
+      console.warn('Unsuccessful Google login attempt.'); // Added console log for unsuccessful attempt
+      console.error('Error during Google login:', error);
       throw error;
     }
   };
 
   // Sign out user from Firebase
-  const logout = () => {
-    setUserRole(null);
-    return signOut(auth);
+  const logout = async () => { // Made async to await and log
+    try {
+      const user = auth.currentUser; // Get user before signing out for logging
+      await signOut(auth);
+      setUserRole(null);
+      console.log('User logged out:', user ? user.uid : 'No user was signed in'); // Added console log
+    } catch (error) {
+      console.error('Error during logout:', error); // Added console log
+      throw error;
+    }
   };
 
   // Get user's role from MongoDB
@@ -267,10 +290,16 @@ export const AuthProvider = ({ children }) => {
   // Set up auth state observer
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
       if (user) {
+        console.log('Auth state changed: User signed in -', user.uid, user.email); // Added console log
+        setCurrentUser(user);
         const role = await getUserRole(user.uid);
         setUserRole(role);
+        console.log('User role fetched:', role, 'for user:', user.uid); // Added console log
+      } else {
+        console.log('Auth state changed: User signed out'); // Added console log
+        setCurrentUser(null);
+        setUserRole(null);
       }
       setLoading(false);
     });
@@ -298,4 +327,4 @@ export const AuthProvider = ({ children }) => {
       {!loading && children}
     </AuthContext.Provider>
   );
-}; 
+};

@@ -12,7 +12,7 @@ require('./config/firebaseAdmin');
 
 // Initialize express app
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5555;
 
 // Middleware
 app.use(cors());
