@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getJobs, getJobStats } from '../api/jobApi';
+import { getJobs, getJobStats, updateJobStatus } from '../api/jobApi';
 import { useAuth } from '../context/AuthContext';
 import '../styles/JobsDashboard.css';
 
@@ -102,6 +102,18 @@ const JobsDashboard = () => {
   const formatPrice = (job) => {
     const amount = job.selectedPackage?.price || job.pricing?.amount || 0;
     return `$${amount}`;
+  };
+
+  const handleQuickStatusUpdate = async (jobId, newStatus) => {
+    try {
+      // Implement the logic to update the job status
+      console.log(`Updating job ${jobId} to status ${newStatus}`);
+      await updateJobStatus(jobId, newStatus);
+      await fetchData(); // Refresh the job list
+    } catch (err) {
+      console.error('Error updating job status:', err);
+      setError('Failed to update job status');
+    }
   };
 
   if (loading) {
@@ -307,20 +319,91 @@ const JobsDashboard = () => {
                     >
                       View Details
                     </Link>
-                    {job.status === 'pending' && activeTab === 'customer' && (
-                      <button className="btn btn-secondary">
-                        Cancel
-                      </button>
-                    )}
+                    
+                    {/* Enhanced status-based actions */}
                     {job.status === 'pending' && activeTab === 'vendor' && (
-                      <>
-                        <button className="btn btn-success">
+                      <div className="vendor-pending-actions">
+                        <button 
+                          className="btn btn-success"
+                          onClick={() => handleQuickStatusUpdate(job._id, 'accepted')}
+                        >
                           Accept
                         </button>
-                        <button className="btn btn-danger">
+                        <button 
+                          className="btn btn-info"
+                          onClick={() => handleQuickStatusUpdate(job._id, 'reviewing')}
+                        >
+                          Review
+                        </button>
+                        <button 
+                          className="btn btn-danger"
+                          onClick={() => handleQuickStatusUpdate(job._id, 'rejected')}
+                        >
                           Decline
                         </button>
-                      </>
+                      </div>
+                    )}
+                    
+                    {job.status === 'confirmed' && activeTab === 'vendor' && (
+                      <button 
+                        className="btn btn-success"
+                        onClick={() => handleQuickStatusUpdate(job._id, 'in_progress')}
+                      >
+                        Start Work
+                      </button>
+                    )}
+                    
+                    {job.status === 'in_progress' && activeTab === 'vendor' && (
+                      <button 
+                        className="btn btn-success"
+                        onClick={() => handleQuickStatusUpdate(job._id, 'completed')}
+                      >
+                        Mark Complete
+                      </button>
+                    )}
+                    
+                    {job.status === 'completed' && activeTab === 'customer' && (
+                      <div className="customer-completed-actions">
+                        <button 
+                          className="btn btn-success"
+                          onClick={() => handleQuickStatusUpdate(job._id, 'delivered')}
+                        >
+                          Accept Delivery
+                        </button>
+                        <button 
+                          className="btn btn-warning"
+                          onClick={() => handleQuickStatusUpdate(job._id, 'disputed')}
+                        >
+                          Dispute
+                        </button>
+                      </div>
+                    )}
+                    
+                    {job.status === 'accepted' && activeTab === 'customer' && (
+                      <button 
+                        className="btn btn-success"
+                        onClick={() => handleQuickStatusUpdate(job._id, 'confirmed')}
+                      >
+                        Confirm & Pay
+                      </button>
+                    )}
+                    
+                    {job.status === 'delivered' && activeTab === 'customer' && (
+                      <button 
+                        className="btn btn-success"
+                        onClick={() => handleQuickStatusUpdate(job._id, 'closed')}
+                      >
+                        Close Job
+                      </button>
+                    )}
+                    
+                    {['pending', 'reviewing', 'accepted'].includes(job.status) && (
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={() => handleQuickStatusUpdate(job._id, 'cancelled')}
+                      >
+                        Cancel
+                      </button>
                     )}
                   </div>
                 </div>

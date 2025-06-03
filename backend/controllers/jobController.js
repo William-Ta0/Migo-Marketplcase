@@ -331,13 +331,13 @@ const getJobById = async (req, res) => {
   }
 };
 
-// @desc    Update job status
+// @desc    Update job status with enhanced workflow validation
 // @route   PUT /api/jobs/:id/status
 // @access  Private
 const updateJobStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, reason } = req.body;
+    const { status, reason, estimatedCompletionDate, deliveryNotes } = req.body;
     const userId = req.user.uid;
 
     // Find user
@@ -350,7 +350,7 @@ const updateJobStatus = async (req, res) => {
     }
 
     // Find job
-    const job = await Job.findById(id);
+    const job = await Job.findById(id).populate('vendor customer service');
     if (!job) {
       return res.status(404).json({
         success: false,
@@ -359,8 +359,8 @@ const updateJobStatus = async (req, res) => {
     }
 
     // Check permissions
-    const isCustomer = job.customer.toString() === user._id.toString();
-    const isVendor = job.vendor.toString() === user._id.toString();
+    const isCustomer = job.customer._id.toString() === user._id.toString();
+    const isVendor = job.vendor._id.toString() === user._id.toString();
     
     if (!isCustomer && !isVendor) {
       return res.status(403).json({
@@ -369,36 +369,114 @@ const updateJobStatus = async (req, res) => {
       });
     }
 
-    // Validate status transitions
+    // Enhanced status transition validation with role-based permissions
     const allowedTransitions = {
-      'pending': ['reviewing', 'accepted', 'rejected', 'cancelled'],
-      'reviewing': ['quoted', 'accepted', 'rejected', 'cancelled'],
-      'quoted': ['accepted', 'rejected', 'cancelled'],
-      'accepted': ['confirmed', 'cancelled'],
-      'confirmed': ['in_progress', 'cancelled'],
-      'in_progress': ['completed', 'cancelled'],
-      'completed': ['delivered', 'disputed'],
-      'delivered': ['closed'],
-      'cancelled': [],
-      'disputed': ['closed'],
-      'closed': []
+      'pending': {
+        vendor: ['reviewing', 'accepted', 'rejected'],
+        customer: ['cancelled']
+      },
+      'reviewing': {
+        vendor: ['quoted', 'accepted', 'rejected'],
+        customer: ['cancelled']
+      },
+      'quoted': {
+        vendor: ['accepted', 'rejected'],
+        customer: ['confirmed', 'cancelled']
+      },
+      'accepted': {
+        vendor: [],
+        customer: ['confirmed', 'cancelled']
+      },
+      'confirmed': {
+        vendor: ['in_progress'],
+        customer: ['cancelled']
+      },
+      'in_progress': {
+        vendor: ['completed'],
+        customer: []
+      },
+      'completed': {
+        vendor: [],
+        customer: ['delivered', 'disputed']
+      },
+      'delivered': {
+        vendor: [],
+        customer: ['closed']
+      },
+      'cancelled': {
+        vendor: [],
+        customer: []
+      },
+      'disputed': {
+        vendor: ['closed'],
+        customer: ['closed']
+      },
+      'closed': {
+        vendor: [],
+        customer: []
+      }
     };
 
-    if (!allowedTransitions[job.status]?.includes(status)) {
+    const userRole = isVendor ? 'vendor' : 'customer';
+    const allowedStatuses = allowedTransitions[job.status]?.[userRole] || [];
+
+    if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: `Cannot change status from ${job.status} to ${status}`
+        message: `As a ${userRole}, you cannot change status from ${job.status} to ${status}`
       });
     }
+
+    // Store previous status for comparison
+    const previousStatus = job.status;
 
     // Update job status
     job.status = status;
     job.modifiedBy = user._id; // For pre-save middleware
 
+    // Handle specific status updates
+    switch (status) {
+      case 'in_progress':
+        job.scheduling.confirmedDate = new Date();
+        if (estimatedCompletionDate) {
+          job.scheduling.estimatedEndTime = new Date(estimatedCompletionDate);
+        }
+        break;
+      
+      case 'completed':
+        job.scheduling.duration.actual = job.scheduling.duration.actual || 
+          Math.ceil((new Date() - new Date(job.scheduling.confirmedDate)) / (1000 * 60 * 60));
+        if (deliveryNotes) {
+          job.deliverables.push(deliveryNotes);
+        }
+        break;
+      
+      case 'delivered':
+        // Mark all deliverables as completed if not already
+        job.completedDeliverables = job.deliverables.map(deliverable => ({
+          name: deliverable,
+          description: deliveryNotes || 'Delivered',
+          completedAt: new Date()
+        }));
+        break;
+      
+      case 'cancelled':
+        job.cancellation = {
+          cancelledBy: user._id,
+          reason: reason || 'No reason provided',
+          cancelledAt: new Date()
+        };
+        break;
+    }
+
     // Add system message for status change
+    const statusMessage = reason ? 
+      `Job status changed from ${previousStatus} to ${status}. Reason: ${reason}` :
+      `Job status changed from ${previousStatus} to ${status}`;
+
     job.messages.push({
       sender: user._id,
-      message: `Job status changed to ${status}${reason ? `: ${reason}` : ''}`,
+      message: statusMessage,
       type: 'status_update'
     });
 
@@ -406,15 +484,25 @@ const updateJobStatus = async (req, res) => {
 
     // Update service statistics if needed
     if (status === 'completed') {
-      await Service.findByIdAndUpdate(job.service, {
+      await Service.findByIdAndUpdate(job.service._id, {
         $inc: { 'stats.bookings': 1 }
       });
     }
 
+    // Get updated job with populated fields
+    const updatedJob = await Job.findById(job._id)
+      .populate('vendor', 'name email avatar')
+      .populate('customer', 'name email avatar')
+      .populate('service', 'title');
+
     res.json({
       success: true,
       message: 'Job status updated successfully',
-      data: { status: job.status }
+      data: {
+        job: updatedJob,
+        previousStatus,
+        newStatus: status
+      }
     });
 
   } catch (error) {
@@ -657,6 +745,149 @@ const getJobStats = async (req, res) => {
   }
 };
 
+// @desc    Get available status transitions for a job
+// @route   GET /api/jobs/:id/transitions
+// @access  Private
+const getJobStatusTransitions = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.uid;
+
+    // Find user
+    const user = await User.findOne({ firebaseUid: userId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Find job
+    const job = await Job.findById(id);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found'
+      });
+    }
+
+    // Check permissions
+    const isCustomer = job.customer.toString() === user._id.toString();
+    const isVendor = job.vendor.toString() === user._id.toString();
+    
+    if (!isCustomer && !isVendor) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    // Define available transitions with role-based permissions
+    const statusTransitions = {
+      'pending': {
+        vendor: [
+          { status: 'reviewing', label: 'Start Review', description: 'Begin reviewing the job request' },
+          { status: 'accepted', label: 'Accept Job', description: 'Accept the job request directly' },
+          { status: 'rejected', label: 'Reject Job', description: 'Decline the job request' }
+        ],
+        customer: [
+          { status: 'cancelled', label: 'Cancel Request', description: 'Cancel the job request' }
+        ]
+      },
+      'reviewing': {
+        vendor: [
+          { status: 'quoted', label: 'Send Quote', description: 'Provide a custom quote' },
+          { status: 'accepted', label: 'Accept Job', description: 'Accept with current terms' },
+          { status: 'rejected', label: 'Reject Job', description: 'Decline the job request' }
+        ],
+        customer: [
+          { status: 'cancelled', label: 'Cancel Request', description: 'Cancel the job request' }
+        ]
+      },
+      'quoted': {
+        vendor: [
+          { status: 'accepted', label: 'Accept Original Terms', description: 'Accept with original terms' },
+          { status: 'rejected', label: 'Reject Job', description: 'Decline the job request' }
+        ],
+        customer: [
+          { status: 'confirmed', label: 'Accept Quote', description: 'Accept the quote and proceed' },
+          { status: 'cancelled', label: 'Cancel Request', description: 'Cancel the job request' }
+        ]
+      },
+      'accepted': {
+        vendor: [],
+        customer: [
+          { status: 'confirmed', label: 'Confirm & Pay', description: 'Confirm the job and make payment' },
+          { status: 'cancelled', label: 'Cancel Job', description: 'Cancel the job' }
+        ]
+      },
+      'confirmed': {
+        vendor: [
+          { status: 'in_progress', label: 'Start Work', description: 'Begin working on the job' }
+        ],
+        customer: [
+          { status: 'cancelled', label: 'Cancel Job', description: 'Cancel the job (may incur fees)' }
+        ]
+      },
+      'in_progress': {
+        vendor: [
+          { status: 'completed', label: 'Mark Complete', description: 'Mark the job as completed' }
+        ],
+        customer: []
+      },
+      'completed': {
+        vendor: [],
+        customer: [
+          { status: 'delivered', label: 'Accept Delivery', description: 'Accept the completed work' },
+          { status: 'disputed', label: 'Dispute Work', description: 'Raise concerns about the work' }
+        ]
+      },
+      'delivered': {
+        vendor: [],
+        customer: [
+          { status: 'closed', label: 'Close Job', description: 'Close the job successfully' }
+        ]
+      },
+      'cancelled': {
+        vendor: [],
+        customer: []
+      },
+      'disputed': {
+        vendor: [
+          { status: 'closed', label: 'Resolve & Close', description: 'Resolve dispute and close job' }
+        ],
+        customer: [
+          { status: 'closed', label: 'Resolve & Close', description: 'Resolve dispute and close job' }
+        ]
+      },
+      'closed': {
+        vendor: [],
+        customer: []
+      }
+    };
+
+    const userRole = isVendor ? 'vendor' : 'customer';
+    const availableTransitions = statusTransitions[job.status]?.[userRole] || [];
+
+    res.json({
+      success: true,
+      data: {
+        currentStatus: job.status,
+        userRole,
+        availableTransitions
+      }
+    });
+
+  } catch (error) {
+    console.error('Error getting job status transitions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get status transitions',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createJob,
   getJobs,
@@ -664,5 +895,6 @@ module.exports = {
   updateJobStatus,
   addMessage,
   uploadFile,
-  getJobStats
+  getJobStats,
+  getJobStatusTransitions
 }; 
