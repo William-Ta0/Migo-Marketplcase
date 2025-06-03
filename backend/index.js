@@ -3,6 +3,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
+const morgan = require('morgan'); // HTTP request logger
+const logger = require('./config/logger'); // Import Winston logger
 
 // Load environment variables
 dotenv.config();
@@ -12,7 +14,14 @@ require('./config/firebaseAdmin');
 
 // Initialize express app
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5555;
+
+// Morgan setup for HTTP request logging
+// Log to console and file stream (via Winston)
+const stream = {
+  write: (message) => logger.info(message.trim()),
+};
+app.use(morgan('combined', { stream })); // 'combined' format is a standard Apache combined log output
 
 // Middleware
 app.use(cors());
@@ -36,6 +45,7 @@ app.use('/api/jobs', require('./routes/jobRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  logger.error(`${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`); // Log error with Winston
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode);
   res.json({
@@ -48,13 +58,13 @@ app.use((err, req, res, next) => {
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('MongoDB Connected');
+    logger.info('MongoDB Connected'); // Use Winston logger
     // Start server
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      logger.info(`Server running on port ${PORT}`); // Use Winston logger
     });
   })
   .catch((err) => {
-    console.error(`Error connecting to MongoDB: ${err.message}`);
+    logger.error(`Error connecting to MongoDB: ${err.message}`); // Use Winston logger
     process.exit(1);
-  }); 
+  });
