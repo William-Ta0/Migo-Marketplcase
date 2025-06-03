@@ -6,7 +6,8 @@ const {
   updateJobStatus,
   addMessage,
   uploadFile,
-  getJobStats
+  getJobStats,
+  getJobStatusTransitions
 } = require('../controllers/jobController');
 const { verifyToken } = require('../middleware/auth');
 
@@ -34,6 +35,11 @@ router.get('/', getJobs);
 // @desc    Get a specific job by ID
 // @access  Private
 router.get('/:id', getJobById);
+
+// @route   GET /api/jobs/:id/transitions
+// @desc    Get available status transitions for a job
+// @access  Private
+router.get('/:id/transitions', getJobStatusTransitions);
 
 // @route   PUT /api/jobs/:id/status
 // @desc    Update job status

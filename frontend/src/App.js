@@ -15,6 +15,7 @@ import ServicesByCategory from './pages/ServicesByCategory';
 import ServiceDetail from './pages/ServiceDetail';
 import ServicesSearch from './pages/ServicesSearch';
 import JobsDashboard from './pages/JobsDashboard';
+import JobDetail from './pages/JobDetail';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
@@ -98,6 +99,16 @@ function App() {
               element={
                 <PrivateRoute requiredRole="admin">
                   <div>Admin Dashboard (To be implemented)</div>
+                </PrivateRoute>
+              }
+            />
+            
+            {/* Job Detail route */}
+            <Route
+              path="/jobs/:id"
+              element={
+                <PrivateRoute>
+                  <JobDetail />
                 </PrivateRoute>
               }
             />

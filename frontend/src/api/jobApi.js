@@ -93,12 +93,14 @@ export const getJobById = async (jobId) => {
 };
 
 // Update job status
-export const updateJobStatus = async (jobId, status, reason = '') => {
+export const updateJobStatus = async (jobId, status, reason = '', additionalData = {}) => {
   try {
+    const requestBody = { status, reason, ...additionalData };
+    
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/status`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ status, reason })
+      body: JSON.stringify(requestBody)
     });
 
     const data = await response.json();
@@ -178,6 +180,27 @@ export const getJobStats = async (role = 'customer') => {
     return data;
   } catch (error) {
     console.error('Error fetching job statistics:', error);
+    throw error;
+  }
+};
+
+// Get available status transitions for a job
+export const getJobStatusTransitions = async (jobId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/transitions`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch job status transitions');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching job status transitions:', error);
     throw error;
   }
 }; 
