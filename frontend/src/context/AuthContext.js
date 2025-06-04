@@ -7,17 +7,16 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
-  deleteUser,
 } from "firebase/auth";
 import { auth } from "../firebase/config";
 import axios from "axios";
 
 // Use environment-specific API URLs
-const BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? process.env.REACT_APP_API_URL || "https://your-backend-url.com/api" // Use environment variable or fallback
-    : "http://localhost:5555/api"; // Backend API running on port 5555 for development
-const API_URL = `${BASE_URL}/users`;
+const API_BASE_URL = process.env.REACT_APP_API_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://your-backend-url.com/api"
+    : "http://localhost:5001/api"); // Backend API running on port 5001 for development
+const API_URL = `${API_BASE_URL}/users`;
 
 const AuthContext = createContext();
 
@@ -206,20 +205,15 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await axios.put(
           `${API_URL}/role`,
-          { role },
-          {
-            headers: {
-              Authorization: `Bearer ${idToken}`,
-            },
-          }
-        );
-        console.log(
-          "Role updated successfully for existing user:",
-          user.uid,
-          "to role:",
-          role
-        );
-
+        { role },
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        }
+      );
+        console.log('Role updated successfully for existing user:', user.uid, 'to role:', role);
+        
         // Update local state immediately
         setCurrentUserRole(role);
         if (userProfile) {
@@ -236,8 +230,8 @@ export const AuthProvider = ({ children }) => {
 
         // If user doesn't exist (404), create them first
         if (error.response && error.response.status === 404) {
-          console.log("User not found in database, creating user:", user.uid);
-
+          console.log('User not found in database, creating user:', user.uid);
+          
           try {
             // Create user in database first
             const createResponse = await axios.post(
@@ -279,7 +273,7 @@ export const AuthProvider = ({ children }) => {
           );
         } else if (error.response && error.response.status >= 500) {
           // Handle server errors
-          throw new Error("Server error. Please try again later.");
+          throw new Error('Server error. Please try again later.');
         } else {
           // Handle other errors
           throw new Error(
@@ -290,7 +284,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Error setting user role:", error);
       // Don't update local state if there was an error
-
       throw error;
     }
   };
@@ -324,11 +317,15 @@ export const AuthProvider = ({ children }) => {
 
       const idToken = await user.getIdToken();
 
-      const response = await axios.put(`${API_URL}/profile`, profileData, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      const response = await axios.put(
+        `${API_URL}/profile`,
+        profileData,
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        }
+      );
 
       // Update local userProfile state
       setUserProfile(response.data);
@@ -352,14 +349,18 @@ export const AuthProvider = ({ children }) => {
       const idToken = await user.getIdToken();
       const formData = new FormData();
 
-      formData.append("avatar", file);
-
-      const response = await axios.post(`${API_URL}/upload-avatar`, formData, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      formData.append('avatar', file);
+      
+      const response = await axios.post(
+        `${API_URL}/upload-avatar`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
 
       // Update local userProfile state
       setUserProfile(response.data);
@@ -388,7 +389,7 @@ export const AuthProvider = ({ children }) => {
 
       // Then delete from Firebase
       await user.delete();
-
+      
       // Clear local state
       setCurrentUser(null);
       setCurrentUserRole(null);
@@ -403,11 +404,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log(
-          "Auth state changed - user signed in:",
-          user.uid,
-          user.email
-        );
+        console.log('Auth state changed - user signed in:', user.uid, user.email);
         setCurrentUser(user);
 
         try {
@@ -433,26 +430,31 @@ export const AuthProvider = ({ children }) => {
           setUserProfile(null);
         }
       } else {
-        console.log("Auth state changed - user signed out");
-
-        setCurrentUser(null);
-        setCurrentUserRole(null);
-        setUserProfile(null);
-        localStorage.removeItem("token"); // Remove token on signout
+        // Only clear state if not in guest mode
+        if (currentUser && currentUser.uid !== "guest") {
+          console.log('Auth state changed - user signed out');
+          setCurrentUser(null);
+          setCurrentUserRole(null);
+          setUserProfile(null);
+          localStorage.removeItem('token'); // Remove token on signout
+        }
       }
       setLoading(false);
     });
 
     return unsubscribe;
-  }, []);
+  }, [currentUser]);
 
   const continueAsGuest = async () => {
     try {
+      setLoading(true);
       setCurrentUser({ uid: "guest", displayName: "Guest" });
       setCurrentUserRole("guest");
       setUserProfile({ role: "guest" });
+      setLoading(false);
     } catch (error) {
       console.error("Error during guest session:", error);
+      setLoading(false);
       throw error;
     }
   };

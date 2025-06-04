@@ -1,0 +1,64 @@
+{
+  "name": "migo-marketplace-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for Migo Marketplace application",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:backend": "jest backend",
+    "test:frontend": "jest frontend",
+    "test:integration": "jest integration",
+    "test:basic": "jest basic.test.js",
+    "test:quick": "jest basic.test.js --verbose"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["./setup.js"],
+    "testMatch": [
+      "**/backend/**/*.test.js",
+      "**/basic.test.js",
+      "**/database-connection.test.js"
+    ],
+    "collectCoverageFrom": [
+      "../backend/**/*.js",
+      "!../backend/node_modules/**",
+      "!../backend/uploads/**"
+    ],
+    "coverageReporters": ["text", "html", "lcov"],
+    "testTimeout": 10000,
+    "maxWorkers": 1,
+    "forceExit": true,
+    "detectOpenHandles": true,
+    "verbose": false,
+    "silent": false,
+    "transformIgnorePatterns": [
+      "node_modules/(?!(babel-jest|@babel))"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "supertest": "^6.3.3",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/user-event": "^14.4.3",
+    "mongoose": "^7.5.0",
+    "axios-mock-adapter": "^1.22.0",
+    "firebase-admin": "^13.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "@babel/preset-react": "^7.22.0",
+    "@babel/plugin-syntax-jsx": "^7.22.0",
+    "babel-jest": "^29.7.0",
+    "identity-obj-proxy": "^3.0.0",
+    "express": "^4.18.0",
+    "cors": "^2.8.5",
+    "jsdom": "^22.1.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  }
+} 

@@ -1,0 +1,27 @@
+RENDER ENVIRONMENT VARIABLES (Copy these exactly):
+
+MONGODB_URI
+mongodb+srv://williamtao030206:Tzx20030206!@cluster0.7kuywqd.mongodb.net/dev_db?retryWrites=true&w=majority&appName=Cluster0
+
+NODE_ENV
+production
+
+FIREBASE_PROJECT_ID
+migo-27d58
+
+FIREBASE_PRIVATE_KEY
+-----BEGIN PRIVATE KEY-----\nMIIEuwIBADANBgkqhkiG9w0BAQEFAASCBKUwggShAgEAAoIBAQC9F9n9UPOX7iCa\nqbf8X+0YOGG8zuZ9cW1Hh4g6aMcJwD3sCrFtQSntkYeL7Ut0mTD5VlqXgmMCMcnw\n9kDPDsLDH4976l0EabyRLdxmC+I9XfH6mRxQMSLO+KoXjoM8rkclc6D3e/4WaPUF\nIf3Qe42LlGpRdR7IRNc5pPlH7Ay1Z9KpH3xrrJVKqTWu6qkv/WROK+cLllt3k5kA\nV0nek8JiUNLJqro1LvTLc73J5pTvwC3C9s/Ro4wpw1ASGGSHxXqfe2BqwWP1Bw8R\nOI5xIPn9gopqoSZG/PqbcWozKcFGRt0+Wprl98W9A7PQl7Pm5nRm68ssWYzK5pwe\nV///b2FhAgMBAAECgf8LkmoaFoTRx2uMtiuMRlKRfjcnrCxu1izZ3nF3zEcMpwx4\nZYR2KzFlrdeduJKQOs/EcoRuFoyjQGjGAPahCpuLVWMdMjp/CqQqPk7pRSY98IHe\nftWSEsUOkCkt8orAK+outeTOlcf27HVnha0Cv+I+/dYue1G8RSTmt4c0ij2SMa1e\nqydlukPvHKyPIM8jEfk1Z4Uwl8dlgGeheoQFwRSN1QR8UJtw54/uCf978N/4mBBw\ntMIWjw3wZ84tfpO5graoGejoSlPgzxL4otDfEiaBi4jzvZUvGiuX9RC5MCyi8yeu\nYhAhqyEjCSwIVgomzVmO9e7/r27pM/wREsrKY5UCgYEA6+m2B//TV9hfNtp3dqf9\nkBsWXwFupeW5mXyXZEx5Kb9Kr1cSnqoqaQ917NqwgWqvdkzxj0tHMhfS4nn3I0AG\nRTIfj02AsvlMZsFWayOW31/D/MhkiZ+Vu5tKk8p/GOvcb9TfhrZAklZqB9WT4k5K\nsyz0gooVkma0BnUkcDNavecCgYEAzTGXXY53Qvm9VegFsOwDeH6cr1oCF8ku8nVQ\nkSDBxJ8CPu/i2LkfugPeUI4qw0F9E384elsNxFE7aYLj5o0fidfgLZHP6iUSlh4m\n+lTWANkwRCXnneME3HtX/E68qze0pHZ5z9z0TF5z8avnZ5W/ItLZdN72HDkegOmd\nW400rXcCgYEAhkd95Cm6axrufzN0oiZWjorMfgE7sNQEg5fGOEHLCXcnlIwUPhmP\nkENLlSiZJODLxKNhL3XirWGgGGbhw7+ykfpIunGb2sNJuIc9oDgerUA+Nwj9KNSc\nDrACkALHuzCtRT4+iNf+Aw2KxrDLvxlfLYNeHVtpke5BdBeDSRYCBWsCgYAFIOYt\nmm/0ppVK3l+2ClAT5OY5o8BFo+ued7wpxG3TYj4GIKzEyeu3FH2r+cGr26kqoZVh\nyYDQlU8s1e6oRoKxSUn7GZfevEp4ogxLWW932fXQ3jmpwpDOie6rCbTBesTzD1sA\nDP+2IO447hj8h8udLTPuLdxs3CidBDnAngjhBQKBgDLf6mmmO6bNqTbtLopqykso\nvuiee//Re0NhPhjpR3ci4MaC5vOdBjXemAR/unOXstWhAtfXIpOiqYt+/sSYMy9D\n3OUcLVRnw2EtxQak9Np2nkSXS3sepCwgPn1y//QED1GkODF729ZaMc84cOEK/pBo\nt3uax65PvY25Y6msycR/\n-----END PRIVATE KEY-----
+
+FIREBASE_CLIENT_EMAIL
+firebase-adminsdk-fbsvc@migo-27d58.iam.gserviceaccount.com
+
+FRONTEND_URL
+https://migo-27d58.web.app
+
+INSTRUCTIONS:
+1. In Render dashboard, go to your service
+2. Click "Environment" tab
+3. Add each variable above as separate environment variables
+4. For FIREBASE_PRIVATE_KEY, copy the entire value INCLUDING the \n characters
+5. Click "Save Changes"
+6. Render will automatically redeploy 

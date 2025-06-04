@@ -1,5 +1,38 @@
 {
+  "name": "migo-marketplace",
+  "version": "1.0.0",
+  "description": "Migo Marketplace - Connecting customers with skilled vendors",
+  "scripts": {
+    "start": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm start",
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "backend:dev": "cd backend && npm run dev",
+    "frontend:dev": "cd frontend && npm start",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "test": "node run-tests.js",
+    "test:backend": "node run-tests.js --backend",
+    "test:frontend": "node run-tests.js --frontend",
+    "test:coverage": "node run-tests.js --coverage",
+    "setup:tests": "./setup-tests.sh"
+  },
   "dependencies": {
-    "react-markdown": "^10.1.0"
-  }
+    "react-markdown": "^10.1.0",
+    "dotenv": "^16.3.1",
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/migo-marketplace.git"
+  },
+  "keywords": ["marketplace", "vendors", "services", "react", "node", "mongodb"],
+  "author": "Your Name",
+  "license": "MIT"
 }
