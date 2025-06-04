@@ -151,7 +151,7 @@ const Home = () => {
     };
     return icons[categoryName] || "⚡";
   };
-
+  
   const getDefaultCategoryImage = (categoryName) => {
     const images = {
       Plumbing:
@@ -209,7 +209,7 @@ const Home = () => {
         "https://images.unsplash.com/photo-1542013936693-884638332954?q=80&w=240&auto=format&fit=crop",
     },
   ];
-
+  
   const promotionalBanners = [
     {
       id: 1,
@@ -267,7 +267,7 @@ const Home = () => {
       if (response?.data && response.data.length > 0) {
         // Navigate to services filtered by category
         navigate(`/services?category=${category.slug}`);
-      } else {
+    } else {
         // Show message for empty categories
         alert(
           `Sorry, we currently don't have any services in the ${category.name} category. Please check back later!`
@@ -458,8 +458,10 @@ const Home = () => {
           {loading ? (
             <div className="loading-message">Loading top services...</div>
           ) : (
-            <div className="services-grid" ref={servicesRef}>
-              {topServices.map((service) => (
+
+          <div className="services-grid" ref={servicesRef}>
+            {topServices.map(service => (
+
                 <div key={service._id} className="top-service-card">
                   <div
                     className="service-image"
@@ -470,23 +472,16 @@ const Home = () => {
                       })`,
                     }}
                   ></div>
-                  <div className="service-info">
+                <div className="service-info">
                     <h3>{service.title}</h3>
-                    <p className="service-description">
-                      {service.shortDescription}
-                    </p>
-                    <div className="rating">
-                      <span className="stars">
-                        {"★".repeat(Math.floor(getRating(service)))}
-                        {"☆".repeat(5 - Math.floor(getRating(service)))}
-                      </span>
-                      <span className="rating-number">
-                        {getRating(service)}
-                      </span>
-                      <span className="reviews">
-                        ({getReviewCount(service)})
-                      </span>
-                    </div>
+
+                    <p className="service-description">{service.shortDescription}</p>
+                  <div className="rating">
+                      <span className="stars">{'★'.repeat(Math.floor(getRating(service)))}{'☆'.repeat(5-Math.floor(getRating(service)))}</span>
+                      <span className="rating-number">{getRating(service)}</span>
+                      <span className="reviews">({getReviewCount(service)})</span>
+                  </div>
+
                     <div className="service-price">{formatPrice(service)}</div>
                     <button
                       className="book-now"
@@ -494,10 +489,10 @@ const Home = () => {
                     >
                       Book Now
                     </button>
-                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+          </div>
           )}
         </div>
       </section>
@@ -526,8 +521,10 @@ const Home = () => {
           {loading ? (
             <div className="loading-message">Loading featured vendors...</div>
           ) : (
-            <div className="vendors-grid" ref={featuredVendorsRef}>
-              {featuredVendors.map((vendor) => (
+
+          <div className="vendors-grid" ref={featuredVendorsRef}>
+            {featuredVendors.map(vendor => (
+
                 <div key={vendor._id} className="vendor-card">
                   <div
                     className="vendor-image"
@@ -543,34 +540,26 @@ const Home = () => {
                       </div>
                     )}
                   </div>
-                  <div className="vendor-info">
-                    <h3>{vendor.name}</h3>
+                <div className="vendor-info">
+                  <h3>{vendor.name}</h3>
                     <p className="vendor-category">{vendor.category}</p>
-                    <div className="rating">
-                      <span className="stars">
-                        {"★".repeat(Math.floor(vendor.rating.average))}
-                        {"☆".repeat(5 - Math.floor(vendor.rating.average))}
-                      </span>
-                      <span className="rating-number">
-                        {vendor.rating.average}
-                      </span>
+
+                  <div className="rating">
+                      <span className="stars">{'★'.repeat(Math.floor(vendor.rating.average))}{'☆'.repeat(5-Math.floor(vendor.rating.average))}</span>
+                      <span className="rating-number">{vendor.rating.average}</span>
                       <span className="reviews">({vendor.rating.count})</span>
-                    </div>
-                    <div className="vendor-tags">
-                      {vendor.verified && (
-                        <span className="verified-tag">✓ Verified</span>
-                      )}
-                    </div>
-                    <button
-                      className="contact-now"
-                      onClick={() => handleContactVendor(vendor)}
-                    >
+                  </div>
+                  <div className="vendor-tags">
+                    {vendor.verified && <span className="verified-tag">✓ Verified</span>}
+                  </div>
+                    <button className="contact-now" onClick={() => handleContactVendor(vendor)}>
+
                       Contact Now
                     </button>
-                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+          </div>
           )}
         </div>
       </section>
@@ -596,14 +585,13 @@ const Home = () => {
                   onClick={() => handleCategoryClick(category)}
                   style={{ cursor: "pointer" }}
                 >
-                  <div
-                    className="category-image"
-                    style={{ backgroundImage: `url(${category.image})` }}
-                  >
-                    <div className="category-icon-overlay">{category.icon}</div>
-                  </div>
-                  <span>{category.name}</span>
+
+                <div className="category-image" style={{ backgroundImage: `url(${category.image})` }}>
+                  <div className="category-icon-overlay">{category.icon}</div>
+
                 </div>
+                <span>{category.name}</span>
+              </div>
               ))
             )}
           </div>

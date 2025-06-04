@@ -1,0 +1,356 @@
+.review-submission-form {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.review-form-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 32px;
+  text-align: center;
+}
+
+.review-form-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.review-form-header p {
+  font-size: 16px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.review-form {
+  padding: 32px;
+}
+
+.error-message {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+/* Service Information */
+.service-info {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.service-info h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.service-description {
+  color: #6B7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Rating Section */
+.rating-section {
+  margin-bottom: 32px;
+}
+
+.rating-section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 24px 0;
+}
+
+.rating-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rating-category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #FAFAFA;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.rating-category-info {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.rating-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.rating-description {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Review Content Section */
+.review-content-section {
+  margin-bottom: 32px;
+}
+
+.review-content-section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 24px 0;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-group small {
+  display: block;
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* Quick Questions Section */
+.quick-questions-section {
+  margin-bottom: 32px;
+}
+
+.quick-questions-section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 24px 0;
+}
+
+.question-group {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.question-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.radio-options {
+  display: flex;
+  gap: 24px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  transition: color 0.2s;
+}
+
+.radio-option:hover {
+  color: #111827;
+}
+
+.radio-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3B82F6;
+  cursor: pointer;
+}
+
+.radio-option span {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  min-width: 120px;
+}
+
+.btn-primary {
+  background: #3B82F6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563EB;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary:disabled {
+  background: #9CA3AF;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: #F3F4F6;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #E5E7EB;
+  transform: translateY(-1px);
+}
+
+.btn-secondary:disabled {
+  background: #F9FAFB;
+  color: #9CA3AF;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Loading states */
+.btn-primary:disabled:contains("Submitting") {
+  position: relative;
+  color: transparent;
+}
+
+.btn-primary:disabled:contains("Submitting")::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Accessibility improvements */
+.form-group input:invalid,
+.form-group textarea:invalid {
+  border-color: #DC2626;
+}
+
+.form-group input:invalid:focus,
+.form-group textarea:invalid:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .rating-category,
+  .question-group,
+  .service-info {
+    border-width: 2px;
+  }
+  
+  .btn-primary {
+    border: 2px solid #1D4ED8;
+  }
+  
+  .btn-secondary {
+    border: 2px solid #374151;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-secondary,
+  .form-group input,
+  .form-group textarea {
+    transition: none;
+  }
+  
+  .btn-primary:hover:not(:disabled),
+  .btn-secondary:hover:not(:disabled) {
+    transform: none;
+  }
+  
+  @keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(0deg); }
+  }
+} 

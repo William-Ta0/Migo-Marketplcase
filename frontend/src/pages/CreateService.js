@@ -464,7 +464,9 @@ const CreateService = () => {
           <div className="form-actions">
             <button
               type="button"
-              onClick={() => navigate("/vendor/jobs")}
+
+              onClick={() => navigate('/vendor/jobs')}
+
               className="btn btn-secondary"
               disabled={loading}
             >

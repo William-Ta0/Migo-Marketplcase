@@ -14,8 +14,37 @@ const jobSchema = new mongoose.Schema(
       maxlength: 1000,
     },
 
-    // Service and vendor information
-    service: {
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      zipCode: String,
+      country: String,
+      coordinates: {
+        lat: Number,
+        lng: Number,
+      }
+    },
+    meetingLink: String, // For remote services
+    specialInstructions: String,
+  },
+  
+  // Job status and workflow
+  status: {
+    type: String,
+    enum: [
+      'pending',        // Initial request from customer
+      'accepted',       // Vendor accepted the job
+      'cancelled',      // Cancelled by either party
+      'completed'       // Work completed and customer confirmed
+    ],
+    default: 'pending',
+  },
+  
+  // Communication
+  messages: [{
+    sender: {
+
       type: mongoose.Schema.Types.ObjectId,
       ref: "Service",
       required: true,

@@ -222,27 +222,28 @@ const JobTimeline = ({ jobId, job }) => {
 
   const getProgressPercentage = () => {
     if (!job) return 0;
-    const statusOrder = [
-      "pending",
-      "confirmed",
-      "in_progress",
-      "completed",
-      "delivered",
-    ];
-    const currentIndex = statusOrder.indexOf(job.status);
-    return currentIndex >= 0
-      ? ((currentIndex + 1) / statusOrder.length) * 100
-      : 0;
+
+    // Updated to match simplified workflow
+    const progressMap = {
+      'pending': 25,
+      'accepted': 75,
+      'completed': 100,
+      'cancelled': 0
+    };
+    return progressMap[job.status] || 0;
+
   };
 
   const getNextMilestone = () => {
     if (!job) return null;
+    // Updated to match simplified workflow
     const milestones = {
-      pending: "Vendor review",
-      confirmed: "Work begins",
-      in_progress: "Work completion",
-      completed: "Delivery",
-      delivered: "Job closed",
+
+      'pending': 'Vendor decision',
+      'accepted': 'Work completion',
+      'completed': 'Job finished',
+      'cancelled': 'Job cancelled'
+
     };
     return milestones[job.status] || null;
   };
