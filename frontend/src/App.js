@@ -19,6 +19,7 @@ import JobDetail from "./pages/JobDetail";
 import CustomerJobTracker from "./components/CustomerJobTracker";
 import RoleBasedJobsRedirect from "./components/RoleBasedJobsRedirect";
 import PrivateRoute from "./components/PrivateRoute";
+import MapPage from "./pages/MapPage";
 import "./App.css";
 
 function App() {
@@ -137,6 +138,9 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Map page route */}
+            <Route path="/map" element={<MapPage />} />
           </Routes>
         </div>
       </AuthProvider>
