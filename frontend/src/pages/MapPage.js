@@ -2,16 +2,13 @@ import React, { useState } from "react";
 import {
   GoogleMap,
   LoadScript,
-  Marker,
   InfoWindow,
+  Marker, // Deprecated, use google.maps.marker.AdvancedMarkerElement instead
+  // AdvancedMarkerElement, // TODO: Move to AdvancedMarkerElement in future updates
 } from "@react-google-maps/api";
 
-// NOTE: Issue with google.maps.places.PlacesService
-// As of March 1st, 2025, google.maps.places.PlacesService is not available to new customers. Please use google.maps.places.Place instead.
-// At this time, google.maps.places.PlacesService is not scheduled to be discontinued, but google.maps.places.Place is recommended over google.maps.places.PlacesService.
-// While google.maps.places.PlacesService will continue to receive bug fixes for any major regressions, existing bugs in google.maps.places.PlacesService will not be addressed.
-// At least 12 months notice will be given before support is discontinued.
-// Please see https://developers.google.com/maps/legacy for additional details and https://developers.google.com/maps/documentation/javascript/places-migration-overview for the migration guide.
+// NOTE: Google Maps API isn't providing phone numbers in search results currently
+// TODO: Add a feature to fetch phone numbers using Place Details API if needed
 
 const containerStyle = {
   width: "100%",
@@ -30,6 +27,8 @@ const santaClaraBounds = {
   west: -122.0, // Slightly west of Santa Clara
 };
 
+const libraries = ["places"];
+
 function MapPage() {
   const [center, setCenter] = useState(defaultCenter); // Allow updating map center
   const [searchResults, setSearchResults] = useState([]);
@@ -38,7 +37,21 @@ function MapPage() {
   const [selectedType, setSelectedType] = useState("caterer"); // Default type
   const [currentPage, setCurrentPage] = useState(1); // Track current page
 
-  const resultsPerPage = 5; // Number of results per page
+  const resultsPerPage = 10; // Number of results per page
+
+  // Add a function to get marker colors based on business type
+  const getMarkerColor = (businessType) => {
+    const colors = {
+      caterer: "#FF6B6B", // Red
+      baker: "#4ECDC4", // Teal
+      painter: "#45B7D1", // Blue
+      photographer: "#96CEB4", // Green
+      dj: "#FFEAA7", // Yellow
+      mechanic: "#DDA0DD", // Purple
+      electrician: "#98D8C8", // Mint
+    };
+    return colors[businessType] || "#FF6B6B"; // Default to red
+  };
 
   const handleSearch = async () => {
     try {
@@ -52,7 +65,16 @@ function MapPage() {
 
       const request = {
         query: `${selectedType} near Santa Clara`, // Use selected type in query
-        fields: ["name", "geometry", "place_id", "vicinity"],
+        fields: [
+          "name",
+          "geometry",
+          "place_id",
+          "vicinity",
+          "formatted_address",
+          "rating",
+          "user_ratings_total",
+          "types",
+        ],
       };
 
       console.log("TextSearch request:", request); // Log the request object
@@ -60,6 +82,7 @@ function MapPage() {
       service.textSearch(request, (results, status) => {
         console.log("TextSearch status:", status); // Log the status
         console.log("TextSearch results:", results); // Log the results
+        console.log("TextSearch results (detailed):", results); // Log detailed results to inspect fields
 
         if (status === window.google.maps.places.PlacesServiceStatus.OK) {
           setSearchResults(results);
@@ -91,7 +114,7 @@ function MapPage() {
       <h1>Map Page</h1>
       <LoadScript
         googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
-        libraries={["places"]}
+        libraries={libraries} // Use the static libraries constant
       >
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -109,7 +132,19 @@ function MapPage() {
             <Marker
               key={place.place_id}
               position={place.geometry.location}
-              onClick={() => setSelectedPlace(place)}
+              icon={{
+                path: window.google.maps.SymbolPath.CIRCLE,
+                fillColor: getMarkerColor(selectedType),
+                fillOpacity: 1,
+                strokeColor: "#FFFFFF",
+                strokeWeight: 3,
+                scale: 12,
+              }}
+              title={place.name} // Tooltip with business name
+              onClick={() => {
+                setSelectedPlace(place);
+                setCenter(place.geometry.location); // Adjust map center dynamically
+              }}
             />
           ))}
 
@@ -149,40 +184,92 @@ function MapPage() {
           Search Businesses
         </button>
       </div>
-      <div style={{ marginBottom: "20px" }}>
-        <h2>Search Results</h2>
-        <ul style={{ listStyleType: "none", padding: 0 }}>
-          {paginatedResults.map((place, index) => (
-            <li
-              key={place.place_id}
-              style={{ cursor: "pointer", marginBottom: "10px" }}
-              onClick={() => handleResultClick(place)}
-            >
-              <strong>
-                {(currentPage - 1) * resultsPerPage + index + 1}. {place.name}
-              </strong>
-              <p>{place.vicinity}</p>
-            </li>
-          ))}
-        </ul>
-        <div style={{ marginTop: "10px" }}>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              style={{
-                marginRight: "5px",
-                padding: "5px",
-                backgroundColor: currentPage === i + 1 ? "#007BFF" : "#FFF",
-                color: currentPage === i + 1 ? "#FFF" : "#000",
-                border: "1px solid #007BFF",
-                cursor: "pointer",
-              }}
-            >
-              {i + 1}
-            </button>
-          ))}
+      <div style={{ display: "flex", marginTop: "20px" }}>
+        <div style={{ flex: 1, marginRight: "20px" }}>
+          <h2>Search Results</h2>
+          <ul style={{ listStyleType: "none", padding: 0 }}>
+            {paginatedResults.map((place, index) => (
+              <li
+                key={place.place_id}
+                style={{
+                  cursor: "pointer",
+                  marginBottom: "10px",
+                  backgroundColor:
+                    selectedPlace?.place_id === place.place_id
+                      ? "#f0f8ff"
+                      : "transparent",
+                  padding: "10px",
+                  border: "1px solid #ddd",
+                }}
+                onClick={() => handleResultClick(place)}
+              >
+                <strong>
+                  {(currentPage - 1) * resultsPerPage + index + 1}. {place.name}
+                </strong>
+                <p>{place.vicinity}</p>
+              </li>
+            ))}
+          </ul>
+          <div style={{ marginTop: "10px" }}>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                style={{
+                  marginRight: "5px",
+                  padding: "5px",
+                  backgroundColor: currentPage === i + 1 ? "#007BFF" : "#FFF",
+                  color: currentPage === i + 1 ? "#FFF" : "#000",
+                  border: "1px solid #007BFF",
+                  cursor: "pointer",
+                }}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
         </div>
+        {selectedPlace && (
+          <div
+            style={{
+              flex: 1,
+              border: "1px solid #ddd",
+              padding: "10px",
+              backgroundColor: "#f9f9f9",
+            }}
+          >
+            <h2>Details</h2>
+            <p>
+              <strong>Name:</strong> {selectedPlace.name}
+            </p>
+            <p>
+              <strong>Address:</strong>{" "}
+              {selectedPlace.formatted_address || "Address not available"}
+            </p>
+            <p>
+              <strong>Phone Number:</strong>{" "}
+              {selectedPlace.formatted_phone_number ||
+                "Phone number not available"}
+            </p>
+            <p>
+              <strong>Rating:</strong>{" "}
+              {selectedPlace.rating || "Rating not available"}
+            </p>
+            <p>
+              <strong>Amount of Ratings:</strong>{" "}
+              {selectedPlace.user_ratings_total || "Rating not available"}
+            </p>
+            <p>
+              <strong>Business Type:</strong>{" "}
+              {selectedPlace.types
+                ?.map((type) => type.replace(/_/g, " "))
+                .join(", ") || "Types not available"}
+            </p>
+            <p>
+              <strong>Place ID:</strong> {selectedPlace.place_id}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
