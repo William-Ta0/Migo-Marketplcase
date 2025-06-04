@@ -4,7 +4,7 @@ import { auth } from "../firebase/config";
 // Use environment-specific API URLs
 const API_URL = process.env.REACT_APP_API_URL
   ? `${process.env.REACT_APP_API_URL}/services`
-  : "http://localhost:5001/api/services";
+  : "http://localhost:5555/api/services";
 
 // Helper function to get auth headers
 const getAuthHeaders = async () => {

@@ -90,7 +90,7 @@ const VendorOnboarding = () => {
   const getApiUrl = () => {
     return process.env.NODE_ENV === "production"
       ? process.env.REACT_APP_API_URL || "https://your-backend-url.com/api"
-      : "http://localhost:5001/api";
+      : "http://localhost:5555/api";
   };
 
   const addSkill = (category) => {

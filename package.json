@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@react-google-maps/api": "^2.20.6"
+    "react-markdown": "^10.1.0"
   }
 }
