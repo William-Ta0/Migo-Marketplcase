@@ -1,0 +1,85 @@
+VERCEL ENVIRONMENT VARIABLES (Copy these exactly):
+
+MONGODB_URI
+mongodb+srv://williamtao030206:Tzx20030206!@cluster0.7kuywqd.mongodb.net/dev_db?retryWrites=true&w=majority&appName=Cluster0
+
+NODE_ENV
+production
+
+JWT_SECRET
+26904a3c91511a024ca32d25662df661e892ab727d902a283aec8c15370cc57126511aebda04b98515d6281c9277559458ac602f5b94317c8f1ef2b808d5cb9a
+
+FIREBASE_PROJECT_ID
+migo-27d58
+
+FIREBASE_PRIVATE_KEY_ID
+46f2f4dcd26ea93eb45834b4671a0196bb2b28aa
+
+FIREBASE_PRIVATE_KEY_BASE64
+LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRRFBIRUNCam5CSHNJQzEKLzdmcVVuVVJ5N0YwSE95ZVJwSTczdGh5TkkzRnpNMFZ3dVBOYS9CNXFKUUNEOHBXVHI2b3VuNHNHd1NmQTZZcApuaXZLVmJLY1RnaFU2RkRrTHFIODF5elh3LzNvUFlGNlBkbTRoeWRGOEhHR0t3N3pJTzlMTVFXVnBPSlNvdGdSCjcxdDBnMm0yaXJRL2Zmbkg4cVBLVGk0MUhmYUZibnJBUHBkbFBSNVlFR2J6TDdna0FMZTFCVVhmd3pmNVlKeGcKWm1Fa2ZGUEdUcmh0SGEwNHlDaEpyMU9yaFd4aTZWS3YvZHUxQy80eXJTNzFkbXlRM1h6SXluRGFIQ3VlYSt5MwplMDc3aHhnTTduc1pnSkMrYURwS1RpNUNHNG9MS2RYV0FxUnVqdGcveHdBdlZ0MWFQd2ZGc3F6ZzFQYXpWSGF5CnFvZ2o2TXV4QWdNQkFBRUNnZ0VBQU9qKzM1TGdxMi83SU5HZTNVaS9ldlNLTXhodGNjU2RuK1c2emNXdFdkRXMKbFl2bHRHRmxEU1BRZ3JIbGtidUcydmIyMXZySGFtdDVyM1VpZkNFa1I4dVAvYytIaTNrby9STjAvdjI5ZitmRgpTZVE3c0xQbldFZFdPR0M0RUJsMDg3K2pacVR5MmFvZGlQYWtVRDdEbUNuRDRRT010WFE3aEFnVDYrZlZ6WUJNCnduVGlURXMwK1krTHF5TzNXbnFDVjBZb3phdkpqb3NmT1pJc0xVaGU5dDVYM1AzazBKZ0hKVVk2NXF2eWdHYlAKZkVyWmY3YkZFayt3VmxEWUdDMlIvSitIK2F6eWI4NHRoMjNUK1BycHpPZWhkU1dHTlhZTnpqcXpXQzZ4bGJHNApmcktiY3FKWWcvYnF0d0NvWk9qbC9YdFRzWjE0NXlGZmZhY2NFWWR5Z1FLQmdRRDIwMDVuWGZXeW9tNVpqOFMxCkE5aWdCWm9QOGVoL0ZJZVg0V3dzaWJUY1NDUzJBeVNiVHAyY2c2NER2Ukd2bjVIYi93YXhWOEVRVFh3RW45QWsKNXVMNTVlQ0hzUUpNWmR0MEc2Zm92amFBdThKMDVtbjNBUTlSMFkvMmd5R09HRmNic3RCbTV1eXpld1FjcVJsMQpNVVYwdnRWVDI3dW1ESmQ4TVNSemUraE4wd0tCZ1FEV3p3aG4zdFNENm9EMXF4TjJnZzU1cDl6cmFjWVRSRDZPCmkvVVlwUFY0S3psYjVOc0ZDV3JIRDNMdklVRHFyTmVRWUtyb0ZmRlhtZGw2VkpsNGlIK3l0dVhTd1N1TXhqMkIKMk5kOG9keFhlcEVKRUhBUCtZN2txaEltOWcyL0tNWWRVamR4d252SjAzenptSk5HeEVVNEJiR2kyV1ZNajJIQwplNmdiTXhsWjZ3S0JnUUNvQTVDVU5sWmdZY2NoK2daWmZhUEEwZTljT1R3Yy9SbUxubXZuS1ZuT3RPRWdjS1ZECmZ0RTAwRUhzMDQrdGI3NTI5WE5WMXJsWjRwU3dCU1ZIYTU5SjhsdlRvZjlCaC9oSlllWDdQVGVXaTdqRG9IQ3oKTGFxQzlGYTk0K2M4ZFg4ZUlLdFIwSkdCWHhTZWVkRVZnQk9hYzZoOUs4N2hLaU1YNjgrM09Mb1o5d0tCZ0RnMgpTVjdWSXd1NlRERDlxY1F6V0pKaGFTQjV0NG5ITEErbGRHZ1VrdC8xZjdjYWRtNGsvcnBFd3JEdEpNM0VtVXlBCjMzaUlkWFdWSHlJeURVOUxlUTlOYVdyemZmQUMySW1vTXd1OFY2clV1aXVERDdBK2dEUTZoVEdJNWlRR0NZSVcKeDhlUE8xR2ZkRzFTbWdmRXlOQldQUnYrZzlHN0c3d0hIQUN5S0lvdEFvR0JBTXh2c0RtTnd0VEt4bld2b0ROMwpEbU9YckYvZEtDTmtkcjIxV05Pd2tnL1Y3Vm5NNmxLeExWVzQ4cDNOc09sV3g5WlBLZzlNMnBBaFhaOCtKOXNXCitrMmtOdVpnQXRCTVIvWno3dTNWTU5wQnZpOWhJUHdUNVFmZUJuVm5XZXVHM2NIR0VKWTQxS2wrMXRBZlRqR0oKZzQwbjBnR25ZQi95aVVaYUh6VjVoN3Q2Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0=
+
+FIREBASE_CLIENT_EMAIL
+firebase-adminsdk-fbsvc@migo-27d58.iam.gserviceaccount.com
+
+FIREBASE_CLIENT_ID
+117254306331835359534
+
+FIREBASE_AUTH_URI
+https://accounts.google.com/o/oauth2/auth
+
+FIREBASE_TOKEN_URI
+https://oauth2.googleapis.com/token
+
+FIREBASE_AUTH_PROVIDER_CERT_URL
+https://www.googleapis.com/oauth2/v1/certs
+
+FIREBASE_CLIENT_CERT_URL
+https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40migo-27d58.iam.gserviceaccount.com
+
+FRONTEND_URL
+https://migo-27d58.web.app
+
+===== DEPLOYMENT INSTRUCTIONS =====
+
+🚀 VERCEL DEPLOYMENT (MUCH EASIER THAN RENDER!)
+
+1. COMMIT AND PUSH TO GITHUB:
+   git add .
+   git commit -m "Add Vercel serverless function setup"
+   git push
+
+2. GO TO VERCEL.COM:
+   - Sign up/Login with GitHub
+   - Click "New Project"
+   - Import your "Migo-Marketplcase" repository
+
+3. CONFIGURE PROJECT:
+   - Framework Preset: "Other"
+   - Root Directory: Leave empty (use root)
+   - Build Command: Leave empty
+   - Output Directory: Leave empty
+   - Install Command: Leave empty
+
+4. ADD ENVIRONMENT VARIABLES:
+   - Click "Environment Variables"
+   - Add each variable above (name = value)
+   - Important: Copy values EXACTLY as shown
+
+5. CLICK "Deploy"!
+
+🎉 ADVANTAGES OF VERCEL:
+✅ Deploys in ~30 seconds (vs 5+ minutes on Render)
+✅ Automatic deployments on every git push
+✅ Better error handling and logs
+✅ No cold starts like Render
+✅ Free tier includes 100GB bandwidth
+✅ Automatic HTTPS
+✅ Global CDN
+✅ Zero configuration needed
+
+🔄 UPDATE FRONTEND API URL:
+After deployment, update frontend/.env:
+REACT_APP_API_URL=https://your-project-name.vercel.app
+
+💡 Your backend will be available at:
+https://your-project-name.vercel.app 
