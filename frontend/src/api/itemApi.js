@@ -5,7 +5,7 @@ import { auth } from "../firebase/config";
 const API_URL =
   process.env.NODE_ENV === "production"
     ? "https://migo-27d58.web.app/api/items" // Change this to your actual backend URL when deployed
-    : "http://localhost:5001/api/items";
+    : "http://localhost:5555/api/items";
 
 // Helper to get auth token
 const getAuthToken = async () => {

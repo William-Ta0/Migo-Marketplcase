@@ -172,7 +172,7 @@ const Profile = () => {
     return process.env.NODE_ENV === "production"
       ? process.env.REACT_APP_API_URL?.replace("/api", "") ||
           "https://your-backend-url.com"
-      : "http://localhost:5001";
+      : "http://localhost:5555";
   };
 
   const getAvatarUrl = () => {

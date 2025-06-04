@@ -5,7 +5,7 @@ const API_URL =
   process.env.NODE_ENV === "production"
     ? process.env.REACT_APP_API_URL ||
       "https://your-backend-url.com/api/categories"
-    : "http://localhost:5001/api/categories";
+    : "http://localhost:5555/api/categories";
 
 // Get all categories
 export const getCategories = async (params = {}) => {
