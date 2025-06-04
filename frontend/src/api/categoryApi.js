@@ -1,17 +1,13 @@
 import axios from "axios";
 
 // Use environment-specific API URLs
-const API_URL =
-  process.env.NODE_ENV === "production"
-    ? process.env.REACT_APP_API_URL ||
-      "https://your-backend-url.com/api/categories"
-    : "http://localhost:5555/api/categories";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5001/api";
 
 // Get all categories
 export const getCategories = async (params = {}) => {
   try {
     const queryString = new URLSearchParams(params).toString();
-    const url = queryString ? `${API_URL}?${queryString}` : API_URL;
+    const url = queryString ? `${API_URL}/categories?${queryString}` : `${API_URL}/categories`;
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
@@ -23,7 +19,7 @@ export const getCategories = async (params = {}) => {
 // Get category by slug
 export const getCategoryBySlug = async (slug) => {
   try {
-    const response = await axios.get(`${API_URL}/${slug}`);
+    const response = await axios.get(`${API_URL}/categories/${slug}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching category ${slug}:`, error);
@@ -34,7 +30,7 @@ export const getCategoryBySlug = async (slug) => {
 // Get subcategories for a category
 export const getSubcategories = async (slug) => {
   try {
-    const response = await axios.get(`${API_URL}/${slug}/subcategories`);
+    const response = await axios.get(`${API_URL}/categories/${slug}/subcategories`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching subcategories for ${slug}:`, error);
@@ -46,7 +42,7 @@ export const getSubcategories = async (slug) => {
 export const searchCategories = async (query, limit = 20) => {
   try {
     const params = new URLSearchParams({ q: query, limit });
-    const response = await axios.get(`${API_URL}/search?${params}`);
+    const response = await axios.get(`${API_URL}/categories/search?${params}`);
     return response.data;
   } catch (error) {
     console.error("Error searching categories:", error);
@@ -57,7 +53,7 @@ export const searchCategories = async (query, limit = 20) => {
 // Get category statistics
 export const getCategoryStats = async () => {
   try {
-    const response = await axios.get(`${API_URL}/stats`);
+    const response = await axios.get(`${API_URL}/categories/stats`);
     return response.data;
   } catch (error) {
     console.error("Error fetching category stats:", error);
@@ -68,7 +64,7 @@ export const getCategoryStats = async () => {
 // Seed categories (admin function)
 export const seedCategories = async () => {
   try {
-    const response = await axios.post(`${API_URL}/seed`);
+    const response = await axios.post(`${API_URL}/categories/seed`);
     return response.data;
   } catch (error) {
     console.error("Error seeding categories:", error);

@@ -24,8 +24,19 @@ const PrivateRoute = ({ children, requiredRole }) => {
     return <Navigate to="/login" />;
   }
 
+  // Handle guest users
+  if (currentUser.uid === "guest") {
+    // If a specific role is required and user is guest, redirect to login
+    if (requiredRole && requiredRole !== "guest") {
+      return <Navigate to="/login" />;
+    }
+    // Otherwise allow guest access
+    return children;
+  }
+
   // If we have a user but are still fetching profile, show loading
-  if (currentUser && userProfile === null) {
+  // Only show this loading state for non-guest users
+  if (currentUser && userProfile === null && currentUser.uid !== "guest") {
     return (
       <div style={{ 
         display: 'flex', 
@@ -39,7 +50,8 @@ const PrivateRoute = ({ children, requiredRole }) => {
   }
 
   // If no role is set after profile is loaded, redirect to role selection
-  if (!userRole && userProfile !== null) {
+  // Skip this check for guest users
+  if (!userRole && userProfile !== null && currentUser.uid !== "guest") {
     return <Navigate to="/select-role" />;
   }
 

@@ -58,7 +58,7 @@ cd frontend
 npm start
 ```
 
-The frontend will be available at http://localhost:3000 and the backend API at http://localhost:5555.
+The frontend will be available at http://localhost:3000 and the backend API at http://localhost:5001.
 
 ## API Endpoints
 

@@ -20,7 +20,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const path = require("path");
 const morgan = require("morgan"); // HTTP request logger
-const logger = require("./config/logger"); // Import Winston logger
+const winston = require("winston");
 
 // Load environment variables
 dotenv.config();
@@ -30,29 +30,72 @@ require("./config/firebaseAdmin");
 
 // Initialize express app
 const app = express();
-const PORT = process.env.PORT || 5555;
+const PORT = process.env.PORT || 5001;
 
-// Morgan setup for HTTP request logging
-// Log to console and file stream (via Winston)
-const stream = {
-  write: (message) => logger.info(message.trim()),
+// Logger configuration
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.simple()
+    })
+  ]
+});
+
+// CORS configuration for production
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL, 'https://your-domain.web.app', 'https://your-domain.firebaseapp.com']
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
-app.use(morgan("combined", { stream })); // 'combined' format is a standard Apache combined log output
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Logging middleware
+if (process.env.NODE_ENV === 'production') {
+  app.use(morgan('combined'));
+} else {
+  app.use(morgan('dev'));
+}
 
 // Serve static files for uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Health check endpoint (before other routes)
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Migo Marketplace API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Routes
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.json({ 
+    message: 'Welcome to Migo Marketplace API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      services: '/api/services',
+      users: '/api/users',
+      jobs: '/api/jobs'
+    }
+  });
 });
 
 // API routes
-
 app.use("/api/items", require("./routes/itemRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/vendor", require("./routes/vendorRoutes"));
@@ -63,30 +106,45 @@ app.use("/api/reviews", require("./routes/reviewRoutes"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error(
-    `${err.status || 500} - ${err.message} - ${req.originalUrl} - ${
-      req.method
-    } - ${req.ip}`
-  ); // Log error with Winston
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode);
-  res.json({
+  logger.error({
     message: err.message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+    stack: err.stack,
+    url: req.url,
+    method: req.method
+  });
+  
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error' 
+      : err.message
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    error: 'Route not found',
+    path: req.originalUrl 
   });
 });
 
 // Connect to MongoDB
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGODB_URI || process.env.MONGO_URI)
   .then(() => {
-    logger.info("MongoDB Connected"); // Use Winston logger
+    logger.info("Connected to MongoDB");
+    console.log('✅ Connected to MongoDB');
     // Start server
-    app.listen(PORT, () => {
-      logger.info(`Server running on port ${PORT}`); // Use Winston logger
+    app.listen(PORT, '0.0.0.0', () => {
+      logger.info(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   })
   .catch((err) => {
-    logger.error(`Error connecting to MongoDB: ${err.message}`); // Use Winston logger
+    logger.error('MongoDB connection error:', err);
+    console.error('❌ MongoDB connection error:', err);
     process.exit(1);
   });
+
+module.exports = app;

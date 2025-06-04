@@ -2,9 +2,11 @@ import axios from "axios";
 import { auth } from "../firebase/config";
 
 // Use environment-specific API URLs
-const API_URL = process.env.REACT_APP_API_URL
-  ? `${process.env.REACT_APP_API_URL}/services`
-  : "http://localhost:5555/api/services";
+const API_BASE_URL = process.env.REACT_APP_API_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://your-backend-url.com/api"
+    : "http://localhost:5001/api");
+const API_URL = `${API_BASE_URL}/services`;
 
 // Helper function to get auth headers
 const getAuthHeaders = async () => {

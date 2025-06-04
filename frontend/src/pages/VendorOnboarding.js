@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/VendorOnboarding.css";
 
+const API_BASE_URL = process.env.REACT_APP_API_URL ||
+  process.env.NODE_ENV === "production"
+    ? "https://your-backend-url.com/api"
+    : "http://localhost:5001/api";
+
 const VendorOnboarding = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -36,7 +41,7 @@ const VendorOnboarding = () => {
 
   const fetchServiceCategories = async () => {
     try {
-      const response = await fetch(`${getApiUrl()}/vendor/categories`);
+      const response = await fetch(`${API_BASE_URL}/vendor/categories`);
       const data = await response.json();
       setCategories(data.categories);
     } catch (error) {
@@ -50,7 +55,7 @@ const VendorOnboarding = () => {
 
     try {
       const token = await currentUser.getIdToken();
-      const response = await fetch(`${getApiUrl()}/vendor/profile`, {
+      const response = await fetch(`${API_BASE_URL}/vendor/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -86,12 +91,6 @@ const VendorOnboarding = () => {
     fetchServiceCategories();
     checkOnboardingStatus();
   }, [currentUser]); // Add currentUser as dependency
-
-  const getApiUrl = () => {
-    return process.env.NODE_ENV === "production"
-      ? process.env.REACT_APP_API_URL || "https://your-backend-url.com/api"
-      : "http://localhost:5555/api";
-  };
 
   const addSkill = (category) => {
     const newSkill = {
@@ -190,7 +189,7 @@ const VendorOnboarding = () => {
       }
 
       const token = await currentUser.getIdToken();
-      const response = await fetch(`${getApiUrl()}/vendor/skills`, {
+      const response = await fetch(`${API_BASE_URL}/vendor/skills`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -241,7 +240,7 @@ const VendorOnboarding = () => {
 
       const token = await currentUser.getIdToken();
       const response = await fetch(
-        `${getApiUrl()}/vendor/verification/upload`,
+        `${API_BASE_URL}/vendor/verification/upload`,
         {
           method: "POST",
           headers: {
@@ -282,7 +281,7 @@ const VendorOnboarding = () => {
 
       const token = await currentUser.getIdToken();
       const response = await fetch(
-        `${getApiUrl()}/vendor/onboarding/complete`,
+        `${API_BASE_URL}/vendor/onboarding/complete`,
         {
           method: "PUT",
           headers: {
