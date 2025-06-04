@@ -203,6 +203,7 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
           <div className="quick-actions-grid">
             <button
               className="quick-action-btn"
+              style={{ color: 'black' }}
               onClick={() =>
                 setNewMessage(
                   "Could you please provide an update on the progress?"
@@ -214,6 +215,7 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
             </button>
             <button
               className="quick-action-btn"
+              style={{ color: 'black' }}
               onClick={() =>
                 setNewMessage(
                   "Thank you for the update. Everything looks good!"
@@ -225,6 +227,7 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
             </button>
             <button
               className="quick-action-btn"
+              style={{ color: 'black' }}
               onClick={() =>
                 setNewMessage("I have a question about the requirements...")
               }
@@ -234,6 +237,7 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
             </button>
             <button
               className="quick-action-btn"
+              style={{ color: 'black' }}
               onClick={() =>
                 setNewMessage("When can we schedule a call to discuss this?")
               }

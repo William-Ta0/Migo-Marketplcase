@@ -178,7 +178,9 @@ const CreateService = () => {
       // Redirect to vendor jobs dashboard
       navigate("/vendor/jobs");
     } catch (error) {
-      console.error("Error creating service:", error);
+      console.error("Full error object:", error);
+      console.error("Error response:", error.response);
+      console.error("Error message:", error.message);
 
       // Better error handling
       if (error.response?.status === 401) {
@@ -186,7 +188,18 @@ const CreateService = () => {
         navigate("/login");
       } else if (error.response?.status === 403) {
         setError(
+          error.response.data?.message || 
           "You do not have permission to create services. Make sure you are logged in as a vendor."
+        );
+      } else if (error.response?.status === 400) {
+        setError(
+          error.response.data?.message || 
+          "Please check all required fields and try again."
+        );
+      } else if (error.response?.status === 404) {
+        setError(
+          error.response.data?.message || 
+          "User not found. Please make sure you're logged in."
         );
       } else if (error.response?.data?.message) {
         setError(error.response.data.message);
@@ -347,8 +360,8 @@ const CreateService = () => {
                 onChange={handleChange}
               >
                 <option value="remote">Remote/Online</option>
-                <option value="in_person">In Person</option>
-                <option value="hybrid">Hybrid</option>
+                <option value="onsite">On-site/In Person</option>
+                <option value="both">Both Remote & On-site</option>
               </select>
             </div>
 
@@ -464,9 +477,7 @@ const CreateService = () => {
           <div className="form-actions">
             <button
               type="button"
-
               onClick={() => navigate('/vendor/jobs')}
-
               className="btn btn-secondary"
               disabled={loading}
             >

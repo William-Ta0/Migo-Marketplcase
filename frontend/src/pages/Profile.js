@@ -32,6 +32,11 @@ const Profile = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 
+    process.env.NODE_ENV === "production"
+      ? process.env.REACT_APP_API_URL || "https://your-backend-url.com"
+      : "http://localhost:5001";
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -167,17 +172,9 @@ const Profile = () => {
     ? role.charAt(0).toUpperCase() + role.slice(1)
     : "No role assigned";
 
-  // Get the backend URL based on environment
-  const getBackendUrl = () => {
-    return process.env.NODE_ENV === "production"
-      ? process.env.REACT_APP_API_URL?.replace("/api", "") ||
-          "https://your-backend-url.com"
-      : "http://localhost:5555";
-  };
-
   const getAvatarUrl = () => {
     if (avatarPreview) return avatarPreview;
-    if (avatar) return `${getBackendUrl()}${avatar}`;
+    if (avatar) return `${API_BASE_URL}${avatar}`;
     return null;
   };
 

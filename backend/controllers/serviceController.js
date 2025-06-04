@@ -5,6 +5,10 @@ const User = require("../models/User");
 // Create a new service
 const createService = async (req, res) => {
   try {
+    console.log("=== Service Creation Request ===");
+    console.log("User ID:", req.user?.uid || req.user?.id);
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    
     const {
       title,
       description,
@@ -24,24 +28,64 @@ const createService = async (req, res) => {
     // Get vendor ID from authenticated user
     const vendorId = req.user?.uid || req.user?.id;
     if (!vendorId) {
+      console.log("No vendor ID found in request");
       return res.status(401).json({
         success: false,
         message: "Authentication required",
       });
     }
 
+    console.log("Looking for vendor with Firebase UID:", vendorId);
+
     // Find vendor in database
     const vendor = await User.findOne({ firebaseUid: vendorId });
     if (!vendor) {
+      console.log("Vendor not found in database for UID:", vendorId);
       return res.status(404).json({
         success: false,
         message: "Vendor not found",
       });
     }
 
+    console.log("Found vendor:", vendor.name, "Role:", vendor.role);
+
+    // Check if user has vendor role
+    if (vendor.role !== 'vendor') {
+      console.log("User is not a vendor. Current role:", vendor.role);
+      return res.status(403).json({
+        success: false,
+        message: "Only vendors can create services. Please update your role to vendor.",
+      });
+    }
+
+    // Validate required fields
+    if (!title || !title.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Service title is required",
+      });
+    }
+
+    if (!description || !description.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Service description is required",
+      });
+    }
+
+    if (!category) {
+      return res.status(400).json({
+        success: false,
+        message: "Service category is required",
+      });
+    }
+
+    console.log("Looking for category:", category);
+
     // Find category by name
     let categoryDoc = await ServiceCategory.findOne({ name: category });
     if (!categoryDoc) {
+      console.log("Category not found, creating new category:", category);
       // Create category if it doesn't exist
       categoryDoc = new ServiceCategory({
         name: category,
@@ -51,6 +95,9 @@ const createService = async (req, res) => {
         isActive: true,
       });
       await categoryDoc.save();
+      console.log("Created new category:", categoryDoc);
+    } else {
+      console.log("Found existing category:", categoryDoc.name);
     }
 
     // Create service

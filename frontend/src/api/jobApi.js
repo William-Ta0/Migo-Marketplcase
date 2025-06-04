@@ -1,7 +1,7 @@
 import { auth } from "../firebase/config";
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5555/api";
+const API_URL = 
+  process.env.REACT_APP_API_URL || "http://localhost:5001/api";
 
 // Helper function to get auth headers
 const getAuthHeaders = async () => {
@@ -34,7 +34,7 @@ const getFileUploadHeaders = async () => {
 export const createJob = async (jobData) => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/jobs`, {
+    const response = await fetch(`${API_URL}/jobs`, {
       method: "POST",
       headers,
       body: JSON.stringify(jobData),
@@ -70,7 +70,7 @@ export const getJobs = async (params = {}) => {
     });
 
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/jobs?${queryParams}`, {
+    const response = await fetch(`${API_URL}/jobs?${queryParams}`, {
       method: "GET",
       headers,
     });
@@ -96,7 +96,7 @@ export const getJobs = async (params = {}) => {
 export const getJobById = async (jobId) => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+    const response = await fetch(`${API_URL}/jobs/${jobId}`, {
       method: "GET",
       headers,
     });
@@ -125,7 +125,7 @@ export const updateJobStatus = async (
     const requestBody = { status, reason, ...additionalData };
     const headers = await getAuthHeaders();
 
-    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/status`, {
+    const response = await fetch(`${API_URL}/jobs/${jobId}/status`, {
       method: "PUT",
       headers,
       body: JSON.stringify(requestBody),
@@ -148,7 +148,7 @@ export const updateJobStatus = async (
 export const addJobMessage = async (jobId, message) => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/messages`, {
+    const response = await fetch(`${API_URL}/jobs/${jobId}/messages`, {
       method: "POST",
       headers,
       body: JSON.stringify({ message }),
@@ -174,7 +174,7 @@ export const uploadJobFile = async (jobId, file) => {
     formData.append("file", file);
 
     const headers = await getFileUploadHeaders();
-    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/upload`, {
+    const response = await fetch(`${API_URL}/jobs/${jobId}/upload`, {
       method: "POST",
       headers,
       body: formData,
@@ -197,7 +197,7 @@ export const uploadJobFile = async (jobId, file) => {
 export const getJobStats = async (role = "customer") => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/jobs/stats?role=${role}`, {
+    const response = await fetch(`${API_URL}/jobs/stats?role=${role}`, {
       method: "GET",
       headers,
     });
@@ -223,7 +223,7 @@ export const getJobStats = async (role = "customer") => {
 export const getJobStatusTransitions = async (jobId) => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/transitions`, {
+    const response = await fetch(`${API_URL}/jobs/${jobId}/transitions`, {
       method: "GET",
       headers,
     });
@@ -245,7 +245,7 @@ export const getJobStatusTransitions = async (jobId) => {
 export const getJobTimeline = async (jobId) => {
   try {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/timeline`, {
+    const response = await fetch(`${API_URL}/jobs/${jobId}/timeline`, {
       method: "GET",
       headers,
     });

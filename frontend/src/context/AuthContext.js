@@ -7,17 +7,16 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
-  deleteUser,
 } from "firebase/auth";
 import { auth } from "../firebase/config";
 import axios from "axios";
 
 // Use environment-specific API URLs
-const BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? process.env.REACT_APP_API_URL || "https://your-backend-url.com/api" // Use environment variable or fallback
-    : "http://localhost:5555/api"; // Backend API running on port 5555 for development
-const API_URL = `${BASE_URL}/users`;
+const API_BASE_URL = process.env.REACT_APP_API_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://your-backend-url.com/api"
+    : "http://localhost:5001/api"); // Backend API running on port 5001 for development
+const API_URL = `${API_BASE_URL}/users`;
 
 const AuthContext = createContext();
 
@@ -51,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
       // Create user document in MongoDB
       const response = await axios.post(
-        `${API_URL}/users/register`,
+        `${API_URL}/register`,
         {
           name,
           email,
@@ -109,7 +108,7 @@ export const AuthProvider = ({ children }) => {
 
       try {
         // Try to get the user profile
-        const profileResponse = await axios.get(`${API_URL}/users/profile`, {
+        const profileResponse = await axios.get(`${API_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
@@ -120,7 +119,7 @@ export const AuthProvider = ({ children }) => {
         // If user doesn\'t exist in MongoDB, create them
         if (error.response && error.response.status === 404) {
           const registerResponse = await axios.post(
-            `${API_URL}/users/register`,
+            `${API_URL}/register`,
             {
               name: user.displayName || "Google User",
               email: user.email,
@@ -180,7 +179,7 @@ export const AuthProvider = ({ children }) => {
       if (!user) return null;
 
       const idToken = await user.getIdToken();
-      const response = await axios.get(`${API_URL}/users/profile`, {
+      const response = await axios.get(`${API_URL}/profile`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -204,9 +203,8 @@ export const AuthProvider = ({ children }) => {
 
       // First, try to update the role (for existing users)
       try {
-
         const response = await axios.put(
-          `${API_URL}/users/role`,
+          `${API_URL}/role`,
         { role },
         {
           headers: {
@@ -223,19 +221,17 @@ export const AuthProvider = ({ children }) => {
         }
         
         return response.data;
-
       } catch (error) {
         console.error('Error updating role:', error.response?.status, error.response?.data);
         
         // If user doesn't exist (404), create them first
         if (error.response && error.response.status === 404) {
-
           console.log('User not found in database, creating user:', user.uid);
           
           try {
             // Create user in database first
             const createResponse = await axios.post(
-              `${API_URL}/users/register`,
+              `${API_URL}/register`,
               {
                 name: user.displayName || 'User',
                 email: user.email,
@@ -266,19 +262,14 @@ export const AuthProvider = ({ children }) => {
         } else if (error.response && error.response.status >= 500) {
           // Handle server errors
           throw new Error('Server error. Please try again later.');
-
-
         } else {
           // Handle other errors
           throw new Error('Failed to assign role. Please check your connection and try again.');
         }
       }
-
-      
     } catch (error) {
       console.error('Error setting user role:', error);
       // Don't update local state if there was an error
-
       throw error;
     }
   };
@@ -290,7 +281,7 @@ export const AuthProvider = ({ children }) => {
       if (!user) return null;
 
       const idToken = await user.getIdToken();
-      const response = await axios.get(`${API_URL}/users/profile`, {
+      const response = await axios.get(`${API_URL}/profile`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -313,7 +304,7 @@ export const AuthProvider = ({ children }) => {
       const idToken = await user.getIdToken();
 
       const response = await axios.put(
-        `${API_URL}/users/profile`,
+        `${API_URL}/profile`,
         profileData,
         {
           headers: {
@@ -321,7 +312,6 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
-
 
       // Update local userProfile state
       setUserProfile(response.data);
@@ -348,7 +338,7 @@ export const AuthProvider = ({ children }) => {
       formData.append('avatar', file);
       
       const response = await axios.post(
-        `${API_URL}/users/upload-avatar`,
+        `${API_URL}/upload-avatar`,
         formData,
         {
           headers: {
@@ -357,7 +347,6 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
-
 
       // Update local userProfile state
       setUserProfile(response.data);
@@ -379,18 +368,15 @@ export const AuthProvider = ({ children }) => {
 
       
       // Delete from MongoDB first
-      await axios.delete(`${API_URL}/users/delete`, {
-
+      await axios.delete(`${API_URL}/delete`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
       });
 
-
       // Then delete from Firebase
       await user.delete();
       
-
       // Clear local state
       setCurrentUser(null);
       setCurrentUserRole(null);
@@ -406,7 +392,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-
         console.log('Auth state changed - user signed in:', user.uid, user.email);
         setCurrentUser(user);
         
@@ -417,11 +402,10 @@ export const AuthProvider = ({ children }) => {
           console.log('Token stored in localStorage');
           
           // Get user profile from MongoDB
-          const response = await axios.get(`${API_URL}/users/profile`, {
+          const response = await axios.get(`${API_URL}/profile`, {
             headers: {
               Authorization: `Bearer ${idToken}`,
             },
-
           });
           
           setUserProfile(response.data);
@@ -434,27 +418,31 @@ export const AuthProvider = ({ children }) => {
           setUserProfile(null);
         }
       } else {
-
-        console.log('Auth state changed - user signed out');
-
-        setCurrentUser(null);
-        setCurrentUserRole(null);
-        setUserProfile(null);
-        localStorage.removeItem('token'); // Remove token on signout
+        // Only clear state if not in guest mode
+        if (currentUser && currentUser.uid !== "guest") {
+          console.log('Auth state changed - user signed out');
+          setCurrentUser(null);
+          setCurrentUserRole(null);
+          setUserProfile(null);
+          localStorage.removeItem('token'); // Remove token on signout
+        }
       }
       setLoading(false);
     });
 
     return unsubscribe;
-  }, []);
+  }, [currentUser]);
 
   const continueAsGuest = async () => {
     try {
+      setLoading(true);
       setCurrentUser({ uid: "guest", displayName: "Guest" });
       setCurrentUserRole("guest");
       setUserProfile({ role: "guest" });
+      setLoading(false);
     } catch (error) {
       console.error("Error during guest session:", error);
+      setLoading(false);
       throw error;
     }
   };

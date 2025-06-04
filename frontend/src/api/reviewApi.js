@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { auth } from '../firebase/config';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5555/api';
 
 // Create a specific axios instance for review API
 const reviewAxios = axios.create({

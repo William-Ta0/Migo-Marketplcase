@@ -1,28 +1,40 @@
 const admin = require("firebase-admin");
-const path = require("path");
 
-// Initialize Firebase Admin
-let serviceAccount;
+// Initialize Firebase Admin using environment variables
 try {
-  try {
-    // Try to load from the backend directory
-    serviceAccount = require("../serviceAccountKey.json");
-  } catch (error) {
-    // If not found, try to load from backup directory
-    serviceAccount = require("../../backup/serviceAccountKey.json");
-  }
-
   if (!admin.apps.length) {
+    // Create service account config from environment variables
+    const serviceAccount = {
+      type: "service_account",
+      project_id: process.env.FIREBASE_PROJECT_ID,
+      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+      private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Handle newlines
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      client_id: process.env.FIREBASE_CLIENT_ID,
+      auth_uri: process.env.FIREBASE_AUTH_URI || "https://accounts.google.com/o/oauth2/auth",
+      token_uri: process.env.FIREBASE_TOKEN_URI || "https://oauth2.googleapis.com/token",
+      auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL || "https://www.googleapis.com/oauth2/v1/certs",
+      client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+    };
+
+    // Validate required environment variables
+    if (!serviceAccount.project_id || !serviceAccount.private_key || !serviceAccount.client_email) {
+      throw new Error("Missing required Firebase environment variables: FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY, or FIREBASE_CLIENT_EMAIL");
+    }
+
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
+      projectId: process.env.FIREBASE_PROJECT_ID
     });
+
+    console.log("Firebase Admin initialized successfully with environment variables");
   }
-  console.log("Firebase Admin initialized successfully with credentials");
 } catch (error) {
   console.error("Error initializing Firebase Admin:", error.message);
-  console.log(
-    "Please ensure serviceAccountKey.json is present in either the backend or backup directory"
-  );
+  console.log("Please ensure all Firebase environment variables are properly set:");
+  console.log("- FIREBASE_PROJECT_ID");
+  console.log("- FIREBASE_PRIVATE_KEY");
+  console.log("- FIREBASE_CLIENT_EMAIL");
   process.exit(1);
 }
 
