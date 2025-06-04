@@ -41,8 +41,8 @@ function App() {
               element={<ServicesByCategory />}
             />
             <Route path="/services/:id" element={<ServiceDetail />} />
-            <Route path="/ask-migo" element={<AskMigo />} /> {/* Add route for Ask Migo page */}
-
+            <Route path="/ask-migo" element={<AskMigo />} />{" "}
+            {/* Add route for Ask Migo page */}
             {/* Protected routes */}
             <Route
               path="/"
@@ -52,7 +52,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Profile route - accessible to all authenticated users */}
             <Route
               path="/profile"
@@ -62,7 +61,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Jobs redirect - role-based routing */}
             <Route
               path="/jobs"
@@ -72,7 +70,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Customer Job Tracker - enhanced tracking for customers */}
             <Route
               path="/my-jobs"
@@ -82,7 +79,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Vendor Jobs Dashboard */}
             <Route
               path="/vendor/jobs"
@@ -92,7 +88,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Customer routes */}
             <Route
               path="/items/:id"
@@ -102,7 +97,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Vendor routes */}
             <Route
               path="/vendor/onboarding"
@@ -120,7 +114,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Admin routes */}
             <Route
               path="/admin/*"
@@ -130,7 +123,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Job Detail route */}
             <Route
               path="/jobs/:id"
@@ -140,7 +132,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* Map page route */}
             <Route path="/map" element={<MapPage />} />
           </Routes>

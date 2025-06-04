@@ -3,7 +3,9 @@ import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 import "../styles/AskMigo.css";
 
-const ai = new GoogleGenAI({ apiKey: process.env.REACT_APP_GOOGLE_GEMINI_API_KEY });
+const ai = new GoogleGenAI({
+  apiKey: process.env.REACT_APP_GOOGLE_GEMINI_API_KEY,
+});
 
 const AskMigo = () => {
   const [userInput, setUserInput] = useState("");
@@ -38,6 +40,10 @@ const AskMigo = () => {
     setUserInput("");
   };
 
+  const clearChat = () => {
+    setMessages([]);
+  };
+
   return (
     <div className="ask-migo-container">
       <h1>Ask Migo</h1>
@@ -45,7 +51,9 @@ const AskMigo = () => {
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`message-bubble ${message.sender === "user" ? "user-bubble" : "bot-bubble"}`}
+            className={`message-bubble ${
+              message.sender === "user" ? "user-bubble" : "bot-bubble"
+            }`}
           >
             <ReactMarkdown>{message.text}</ReactMarkdown>
           </div>
@@ -58,6 +66,9 @@ const AskMigo = () => {
           placeholder="Type your message here..."
         ></textarea>
         <button onClick={handleSubmit}>Send</button>
+        <button onClick={clearChat} className="clear-chat-button">
+          Clear Chat
+        </button>
       </div>
     </div>
   );
