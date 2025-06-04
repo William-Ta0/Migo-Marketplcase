@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 import "../styles/AskMigo.css";
 import { serviceTypes } from "../constants/serviceTypes";
+import { dummyServices } from "../constants/dummyServices";
 import { handleSearch } from "../pages/MapPage";
 
 const ai = new GoogleGenAI({
@@ -15,27 +16,10 @@ const AskMigo = () => {
   const [guidedStep, setGuidedStep] = useState(0);
   const [selectedService, setSelectedService] = useState("");
   const [mapResults, setMapResults] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
 
   // Only offering in person services
   const currentServices = serviceTypes;
-
-  // Dummy data for Santa Clara businesses
-  const santaClaraBusinesses = [
-    { name: "Santa Clara Catering Co.", service: "Catering" },
-    { name: "Clean Sweep Santa Clara", service: "Cleaning" },
-    { name: "Plumbing Pros SC", service: "Plumbing" },
-    { name: "Santa Clara Electricians", service: "Electrical" },
-    { name: "Green Thumb Landscaping", service: "Landscaping" },
-    { name: "Perfect Paints", service: "Painting" },
-    { name: "Sweet Treats Bakery", service: "Baked Goods" },
-    { name: "Decor Experts", service: "Decorating" },
-    { name: "DJ Vibes", service: "DJ Services" },
-    { name: "Photo Magic", service: "Photography" },
-    { name: "Pest Busters", service: "Pest Control" },
-    { name: "Move It Movers", service: "Moving Services" },
-    { name: "Pet Pals", service: "Pet Care" },
-    { name: "Tutor Time", service: "Tutoring" },
-  ];
 
   const handleInputChange = (e) => {
     setUserInput(e.target.value);
@@ -59,8 +43,8 @@ const AskMigo = () => {
   };
 
   const recommendBusinesses = async (selectedService) => {
-    const businesses = santaClaraBusinesses.filter(
-      (business) => business.service === selectedService
+    const businesses = dummyServices.filter(
+      (service) => service.service === selectedService
     );
 
     const botMessage = {
@@ -77,7 +61,7 @@ const AskMigo = () => {
       const searchMessage = {
         sender: "bot",
         text: `Other businesses found offering ${selectedService}: ${searchResults
-          .map((result) => result.name)
+          .map((r) => r.name)
           .join(", ")}`,
       };
       setMessages((prevMessages) => [...prevMessages, searchMessage]);
@@ -106,10 +90,12 @@ const AskMigo = () => {
     }
     if (guidedStep === 1) {
       const business = option;
+      const serviceInfo = dummyServices.find((s) => s.name === business) || {};
+      setIsTyping(true);
       try {
         const response = await ai.models.generateContent({
           model: "gemini-2.0-flash",
-          contents: `You are ${business}, a ${selectedService} provider located at Santa Clara University. Please provide a quote and any additional information as a business owner to a potential client.`,
+          contents: `You are ${serviceInfo.name}, a ${serviceInfo.service} provider. Owner: ${serviceInfo.ownerName}. Address: ${serviceInfo.address}. Phone: ${serviceInfo.phone}. You have ${serviceInfo.ratingsCount} reviews with an average rating of ${serviceInfo.ratingValue}. Please provide a short, human-like quote and any additional details to a potential client.`,
         });
         const botMessage = { sender: "bot", text: response.text };
         setMessages((prev) => [...prev, botMessage]);
@@ -120,6 +106,8 @@ const AskMigo = () => {
           text: "Sorry, we couldn't process your request. Please try again later.",
         };
         setMessages((prev) => [...prev, errorMsg]);
+      } finally {
+        setIsTyping(false);
       }
       setGuidedStep(-1);
       return;
@@ -131,17 +119,19 @@ const AskMigo = () => {
 
     const userMessage = { sender: "user", text: userInput };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setIsTyping(true);
 
     try {
       const context = `Available services in Santa Clara, CA: ${currentServices.join(
         ", "
-      )}.\nBusinesses offering these services: ${santaClaraBusinesses
-        .map((b) => `${b.name} (${b.service})`)
+      )}.
+Businesses offering these services: ${dummyServices
+        .map((s) => `${s.name} (${s.service})`)
         .join(", ")}.`;
 
       const response = await ai.models.generateContent({
         model: "gemini-2.0-flash",
-        contents: `${context}\nUser input: ${userInput}`,
+        contents: `${context}\nUser input: ${userInput}\n\nPlease keep your response short and human-like.`,
       });
 
       const botMessage = { sender: "bot", text: response.text };
@@ -153,6 +143,8 @@ const AskMigo = () => {
         text: "Sorry, we couldn't process your request. Please try again later.",
       };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
+    } finally {
+      setIsTyping(false);
     }
 
     setUserInput("");
@@ -168,9 +160,9 @@ const AskMigo = () => {
   };
 
   // prepare dynamic business options after selection
-  const dummyBusinessNames = santaClaraBusinesses
-    .filter((b) => b.service === selectedService)
-    .map((b) => b.name);
+  const dummyBusinessNames = dummyServices
+    .filter((s) => s.service === selectedService)
+    .map((s) => s.name);
   const businessOptions = [
     ...new Set([...dummyBusinessNames, ...mapResults.map((r) => r.name)]),
   ];
@@ -189,6 +181,13 @@ const AskMigo = () => {
             <ReactMarkdown>{message.text}</ReactMarkdown>
           </div>
         ))}
+        {isTyping && (
+          <div className="message-bubble bot-bubble typing-indicator">
+            <span>.</span>
+            <span>.</span>
+            <span>.</span>
+          </div>
+        )}
 
         {guidedStep === 0 && (
           <div className="guided-question">
