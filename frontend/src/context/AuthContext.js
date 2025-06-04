@@ -401,6 +401,17 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
+  const continueAsGuest = async () => {
+    try {
+      setCurrentUser({ uid: 'guest', displayName: 'Guest' });
+      setCurrentUserRole('guest');
+      setUserProfile({ role: 'guest' });
+    } catch (error) {
+      console.error('Error during guest session:', error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     userRole,
@@ -415,6 +426,7 @@ export const AuthProvider = ({ children }) => {
     updateUserProfile,
     uploadAvatar,
     deleteAccount,
+    continueAsGuest,
     // Alias for backward compatibility
     user: currentUser
   };

@@ -8,8 +8,8 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  const { login, googleLogin, getUserRole } = useAuth();
+
+  const { login, googleLogin, continueAsGuest, getUserRole } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,7 +20,7 @@ const Login = () => {
       setLoading(true);
       const userCredential = await login(email, password);
       const role = await getUserRole(userCredential.user.uid);
-      
+
       // Redirect based on role
       if (!role) {
         navigate('/select-role');
@@ -53,7 +53,7 @@ const Login = () => {
       setLoading(true);
       const userCredential = await googleLogin();
       const role = await getUserRole(userCredential.uid);
-      
+
       // Redirect based on role
       if (!role) {
         navigate('/select-role');
@@ -80,12 +80,26 @@ const Login = () => {
     }
   };
 
+  const handleContinueAsGuest = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      await continueAsGuest();
+      navigate('/');
+    } catch (err) {
+      console.error('Guest login error:', err);
+      setError('Failed to continue as guest');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-form-container">
         <h2>Sign in to your account</h2>
         {error && <div className="auth-error">{error}</div>}
-        
+
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label>Email</label>
@@ -124,6 +138,14 @@ const Login = () => {
           Continue with Google
         </button>
 
+        <button
+          onClick={handleContinueAsGuest}
+          disabled={loading}
+          className="auth-button guest-button"
+        >
+          Continue as Guest
+        </button>
+
         <div className="auth-links">
           Don't have an account? <Link to="/register">Sign up</Link>
         </div>
@@ -132,4 +154,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;
