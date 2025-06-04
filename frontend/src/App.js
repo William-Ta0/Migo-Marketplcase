@@ -20,6 +20,7 @@ import CustomerJobTracker from "./components/CustomerJobTracker";
 import RoleBasedJobsRedirect from "./components/RoleBasedJobsRedirect";
 import PrivateRoute from "./components/PrivateRoute";
 import MapPage from "./pages/MapPage";
+import AskMigo from "./pages/AskMigo"; // Import the Ask Migo page
 import "./App.css";
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
               element={<ServicesByCategory />}
             />
             <Route path="/services/:id" element={<ServiceDetail />} />
+            <Route path="/ask-migo" element={<AskMigo />} /> {/* Add route for Ask Migo page */}
 
             {/* Protected routes */}
             <Route
