@@ -1,71 +1,87 @@
-import React, { useState, useEffect } from 'react';
-import { getJobStatusTransitions } from '../api/jobApi';
+import React, { useState } from 'react';
 
 const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
-  const [availableTransitions, setAvailableTransitions] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [selectedTransition, setSelectedTransition] = useState(null);
+  const [selectedAction, setSelectedAction] = useState(null);
   const [reason, setReason] = useState('');
-  const [estimatedCompletionDate, setEstimatedCompletionDate] = useState('');
-  const [deliveryNotes, setDeliveryNotes] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchAvailableTransitions();
-  }, [job._id]);
+  const getAvailableActions = () => {
+    const actions = [];
 
-  const fetchAvailableTransitions = async () => {
-    try {
-      setLoading(true);
-      const response = await getJobStatusTransitions(job._id);
-      if (response.success) {
-        setAvailableTransitions(response.data.availableTransitions);
+    if (job.status === 'pending') {
+      if (isVendor) {
+        actions.push({
+          status: 'accepted',
+          label: 'Accept Job',
+          description: 'Accept this job request and begin work',
+          color: '#10b981',
+          buttonClass: 'btn-success'
+        });
+        actions.push({
+          status: 'cancelled',
+          label: 'Cancel Job',
+          description: 'Cancel this job request',
+          color: '#ef4444',
+          buttonClass: 'btn-danger',
+          requiresReason: true
+        });
       }
-    } catch (err) {
-      console.error('Error fetching transitions:', err);
-    } finally {
-      setLoading(false);
+      if (isCustomer) {
+        actions.push({
+          status: 'cancelled',
+          label: 'Cancel Request',
+          description: 'Cancel this job request',
+          color: '#ef4444',
+          buttonClass: 'btn-danger',
+          requiresReason: true
+        });
+      }
     }
+
+    if (job.status === 'accepted') {
+      if (isCustomer) {
+        actions.push({
+          status: 'completed',
+          label: 'Confirm Work Done',
+          description: 'Confirm that the work has been completed satisfactorily',
+          color: '#22c55e',
+          buttonClass: 'btn-success'
+        });
+        actions.push({
+          status: 'cancelled',
+          label: 'Cancel Job',
+          description: 'Cancel this job (if needed)',
+          color: '#ef4444',
+          buttonClass: 'btn-danger',
+          requiresReason: true
+        });
+      }
+    }
+
+    return actions;
   };
 
-  const handleStatusChange = (transition) => {
-    setSelectedTransition(transition);
+  const handleActionClick = (action) => {
+    setSelectedAction(action);
     setShowStatusModal(true);
     setReason('');
-    setEstimatedCompletionDate('');
-    setDeliveryNotes('');
     setError('');
   };
 
-  const confirmStatusChange = async () => {
+  const confirmAction = async () => {
     try {
       setError('');
       
       // Validation
-      if (selectedTransition.status === 'rejected' && !reason.trim()) {
-        setError('Please provide a reason for rejection');
+      if (selectedAction.requiresReason && !reason.trim()) {
+        setError('Please provide a reason for this action');
         return;
       }
 
-      if (selectedTransition.status === 'cancelled' && !reason.trim()) {
-        setError('Please provide a reason for cancellation');
-        return;
-      }
-
-      const additionalData = {};
-      
-      if (estimatedCompletionDate) {
-        additionalData.estimatedCompletionDate = estimatedCompletionDate;
-      }
-      
-      if (deliveryNotes) {
-        additionalData.deliveryNotes = deliveryNotes;
-      }
-
-      await onStatusUpdate(selectedTransition.status, reason.trim(), additionalData);
+      await onStatusUpdate(selectedAction.status, reason.trim());
       setShowStatusModal(false);
-      setSelectedTransition(null);
+      setSelectedAction(null);
     } catch (err) {
       setError('Failed to update status. Please try again.');
     }
@@ -73,19 +89,22 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      'pending': '#f59e0b',
-      'reviewing': '#3b82f6',
-      'quoted': '#8b5cf6',
-      'accepted': '#10b981',
-      'confirmed': '#059669',
-      'in_progress': '#0ea5e9',
-      'completed': '#22c55e',
-      'delivered': '#16a34a',
-      'cancelled': '#ef4444',
-      'disputed': '#dc2626',
-      'closed': '#6b7280'
+      'pending': '#f59e0b',       // Orange
+      'accepted': '#10b981',      // Green
+      'cancelled': '#ef4444',     // Red
+      'completed': '#22c55e'      // Success Green
     };
     return colors[status] || '#6b7280';
+  };
+
+  const getStatusDescription = (status) => {
+    const descriptions = {
+      'pending': isVendor ? 'Customer is waiting for your response' : 'Waiting for vendor to accept your request',
+      'accepted': isVendor ? 'You have accepted this job. Please complete the work.' : 'Vendor has accepted your request. You can confirm when work is done.',
+      'cancelled': 'This job has been cancelled',
+      'completed': 'This job has been completed successfully'
+    };
+    return descriptions[status] || '';
   };
 
   const formatDate = (dateString) => {
@@ -98,9 +117,7 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
     });
   };
 
-  const getStatusHistory = () => {
-    return job.tracking?.statusHistory || [];
-  };
+  const availableActions = getAvailableActions();
 
   return (
     <div className="job-status-manager">
@@ -113,12 +130,10 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
               className="status-indicator"
               style={{ backgroundColor: getStatusColor(job.status) }}
             >
-              {job.status.replace('_', ' ').toUpperCase()}
+              {job.status.toUpperCase()}
             </div>
             <div className="status-details">
-              <p>
-                {isVendor ? 'You' : 'The vendor'} can take the following actions:
-              </p>
+              <p>{getStatusDescription(job.status)}</p>
             </div>
           </div>
         </div>
@@ -126,29 +141,29 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
         {/* Available Actions */}
         <div className="available-actions-card">
           <h3>Available Actions</h3>
-          {loading ? (
-            <div className="loading-text">Loading available actions...</div>
-          ) : availableTransitions.length > 0 ? (
+          {availableActions.length > 0 ? (
             <div className="actions-grid">
-              {availableTransitions.map((transition, index) => (
-                <div key={index} className="action-item">
-                  <button
-                    className={`action-btn ${transition.status}`}
-                    onClick={() => handleStatusChange(transition)}
-                    style={{ borderColor: getStatusColor(transition.status) }}
-                  >
-                    <div className="action-label">{transition.label}</div>
-                    <div className="action-description">{transition.description}</div>
-                  </button>
-                </div>
+              {availableActions.map((action, index) => (
+                <button
+                  key={index}
+                  className={`action-btn ${action.buttonClass}`}
+                  onClick={() => handleActionClick(action)}
+                >
+                  <div className="action-label">{action.label}</div>
+                  <div className="action-description">{action.description}</div>
+                </button>
               ))}
             </div>
           ) : (
             <div className="no-actions">
               <p>No actions available at this time.</p>
               <small>
-                {job.status === 'closed' 
-                  ? 'This job has been completed and closed.'
+                {job.status === 'completed' || job.status === 'cancelled'
+                  ? 'This job has been finalized.'
+                  : job.status === 'pending' && isCustomer
+                  ? 'Please wait for the vendor to respond.'
+                  : job.status === 'accepted' && isVendor
+                  ? 'Please complete the work. Customer will confirm when done.'
                   : 'Please wait for the other party to take action.'
                 }
               </small>
@@ -156,86 +171,48 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
           )}
         </div>
 
-        {/* Status History */}
-        <div className="status-history-card">
-          <h3>Status History</h3>
-          <div className="status-timeline">
-            {getStatusHistory().length > 0 ? (
-              getStatusHistory().map((historyItem, index) => (
-                <div key={index} className="timeline-item">
-                  <div 
-                    className="timeline-dot"
-                    style={{ backgroundColor: getStatusColor(historyItem.status) }}
-                  ></div>
-                  <div className="timeline-content">
-                    <div className="timeline-status">
-                      {historyItem.status.replace('_', ' ').toUpperCase()}
-                    </div>
-                    <div className="timeline-date">
-                      {formatDate(historyItem.timestamp)}
-                    </div>
-                    {historyItem.reason && (
-                      <div className="timeline-reason">
-                        Reason: {historyItem.reason}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="no-history">
-                <p>No status history available</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Job Progress Metrics */}
+        {/* Job Progress Information */}
         <div className="progress-metrics-card">
           <h3>Job Progress</h3>
           <div className="metrics-grid">
             <div className="metric-item">
-              <label>Time since creation:</label>
-              <span>{Math.ceil((new Date() - new Date(job.createdAt)) / (1000 * 60 * 60 * 24))} days</span>
+              <label>Created:</label>
+              <span>{formatDate(job.createdAt)}</span>
             </div>
-            {job.scheduling?.confirmedDate && (
+            
+            {job.status === 'accepted' && (
               <div className="metric-item">
-                <label>Time since start:</label>
-                <span>{Math.ceil((new Date() - new Date(job.scheduling.confirmedDate)) / (1000 * 60 * 60 * 24))} days</span>
+                <label>Accepted:</label>
+                <span>{formatDate(job.updatedAt)}</span>
               </div>
             )}
-            {job.scheduling?.duration?.estimated && (
+            
+            {job.status === 'completed' && (
               <div className="metric-item">
-                <label>Estimated duration:</label>
-                <span>{job.scheduling.duration.estimated} hours</span>
+                <label>Completed:</label>
+                <span>{formatDate(job.updatedAt)}</span>
               </div>
             )}
-            {job.scheduling?.duration?.actual && (
-              <div className="metric-item">
-                <label>Actual duration:</label>
-                <span>{job.scheduling.duration.actual} hours</span>
-              </div>
-            )}
+            
             <div className="metric-item">
-              <label>Payment status:</label>
-              <span className={`payment-status ${job.payment?.status || 'pending'}`}>
-                {(job.payment?.status || 'pending').toUpperCase()}
-              </span>
-            </div>
-            <div className="metric-item">
-              <label>Messages exchanged:</label>
-              <span>{job.messages?.length || 0}</span>
+              <label>Total Value:</label>
+              <span>{new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }).format(job.pricing?.amount || 0)}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Status Change Modal */}
-      {showStatusModal && selectedTransition && (
+      {showStatusModal && selectedAction && (
         <div className="modal-overlay">
           <div className="status-modal">
             <div className="modal-header">
-              <h3>Confirm Status Change</h3>
+              <h3>{selectedAction.label}</h3>
               <button 
                 className="close-btn"
                 onClick={() => setShowStatusModal(false)}
@@ -246,68 +223,34 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
             
             <div className="modal-content">
               <div className="status-change-summary">
-                <p>You are about to change the job status to:</p>
+                <p>Are you sure you want to {selectedAction.label.toLowerCase()}?</p>
                 <div 
                   className="new-status-badge"
-                  style={{ backgroundColor: getStatusColor(selectedTransition.status) }}
+                  style={{ backgroundColor: selectedAction.color }}
                 >
-                  {selectedTransition.label}
+                  {selectedAction.status.toUpperCase()}
                 </div>
-                <p className="status-description">{selectedTransition.description}</p>
+                <p className="status-description">{selectedAction.description}</p>
               </div>
 
-              {/* Reason field for rejections and cancellations */}
-              {(['rejected', 'cancelled', 'disputed'].includes(selectedTransition.status)) && (
+              {selectedAction.requiresReason && (
                 <div className="form-group">
-                  <label htmlFor="reason">
-                    Reason {(['rejected', 'cancelled'].includes(selectedTransition.status)) ? '(Required)' : '(Optional)'}:
-                  </label>
+                  <label htmlFor="reason">Reason (Required):</label>
                   <textarea
                     id="reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder={`Please provide a reason for ${selectedTransition.status}...`}
-                    rows={3}
-                    required={['rejected', 'cancelled'].includes(selectedTransition.status)}
-                  />
-                </div>
-              )}
-
-              {/* Estimated completion date for in_progress status */}
-              {selectedTransition.status === 'in_progress' && (
-                <div className="form-group">
-                  <label htmlFor="completion-date">Estimated Completion Date (Optional):</label>
-                  <input
-                    type="datetime-local"
-                    id="completion-date"
-                    value={estimatedCompletionDate}
-                    onChange={(e) => setEstimatedCompletionDate(e.target.value)}
-                    min={new Date().toISOString().slice(0, 16)}
-                  />
-                </div>
-              )}
-
-              {/* Delivery notes for completed status */}
-              {selectedTransition.status === 'completed' && (
-                <div className="form-group">
-                  <label htmlFor="delivery-notes">Delivery Notes (Optional):</label>
-                  <textarea
-                    id="delivery-notes"
-                    value={deliveryNotes}
-                    onChange={(e) => setDeliveryNotes(e.target.value)}
-                    placeholder="Describe what was delivered or completed..."
+                    placeholder="Please provide a reason for this action..."
                     rows={3}
                   />
                 </div>
               )}
 
               {error && (
-                <div className="error-message">
-                  {error}
-                </div>
+                <div className="error-message">{error}</div>
               )}
             </div>
-
+            
             <div className="modal-actions">
               <button 
                 className="btn btn-secondary"
@@ -316,11 +259,10 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
                 Cancel
               </button>
               <button 
-                className="btn btn-primary"
-                onClick={confirmStatusChange}
-                style={{ backgroundColor: getStatusColor(selectedTransition.status) }}
+                className={`btn ${selectedAction.buttonClass}`}
+                onClick={confirmAction}
               >
-                Confirm {selectedTransition.label}
+                Confirm {selectedAction.label}
               </button>
             </div>
           </div>

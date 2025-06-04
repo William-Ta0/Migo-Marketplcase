@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getJobs, getJobStats } from '../api/jobApi';
+import { getJobs, getJobStats, updateJobStatus } from '../api/jobApi';
 import { useAuth } from '../context/AuthContext';
 import { onSnapshot, query, collection, where, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -94,7 +94,7 @@ const mockStats = {
 const filterOptions = [
   { key: 'all', label: 'All Jobs' },
   { key: 'pending', label: 'Pending' },
-  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'accepted', label: 'Accepted' },
   { key: 'completed', label: 'Completed' },
   { key: 'cancelled', label: 'Cancelled' },
 ];
@@ -226,12 +226,6 @@ const CustomerJobTracker = () => {
     return statusTexts[status] || status;
   };
 
-  const getStatusProgress = (status) => {
-    const statusOrder = ['pending', 'confirmed', 'in_progress', 'completed', 'delivered'];
-    const currentIndex = statusOrder.indexOf(status);
-    return currentIndex >= 0 ? ((currentIndex + 1) / statusOrder.length) * 100 : 0;
-  };
-
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -246,7 +240,9 @@ const CustomerJobTracker = () => {
     const amount = job.selectedPackage?.price || job.pricing?.amount || 0;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   };
 
@@ -295,8 +291,8 @@ const CustomerJobTracker = () => {
 
   // Calculate statistics from current jobs data (real or mock)
   const stats = useMemo(() => {
-    const activeJobs = jobs.filter(job => job.status === 'in_progress' || job.status === 'confirmed');
-    const pendingJobs = jobs.filter(job => job.status === 'pending' || job.status === 'quoted');
+    const activeJobs = jobs.filter(job => job.status === 'accepted');
+    const pendingJobs = jobs.filter(job => job.status === 'pending');
     const completedJobs = jobs.filter(job => job.status === 'completed');
     const totalSpent = completedJobs.reduce((sum, job) => sum + (job.pricing?.amount || 0), 0);
 
@@ -320,14 +316,23 @@ const CustomerJobTracker = () => {
     window.location.href = `/jobs/${job._id}`;
   };
 
+  // Handle quick status updates for customers
+  const handleQuickStatusUpdate = async (jobId, newStatus) => {
+    try {
+      console.log(`Customer updating job ${jobId} to status ${newStatus}`);
+      await updateJobStatus(jobId, newStatus, 'Customer confirmed work completion');
+      await fetchJobs(); // Refresh the job list
+    } catch (err) {
+      console.error('Error updating job status:', err);
+      alert('Failed to update job status');
+    }
+  };
+
   // Calculate job progress percentage based on status
   const getJobProgress = (status) => {
     const progressMap = {
-      'pending': 10,
-      'quoted': 25,
-      'reviewing': 25,
-      'confirmed': 40,
-      'in_progress': 60,
+      'pending': 25,
+      'accepted': 75,
       'completed': 100,
       'cancelled': 0
     };
@@ -378,7 +383,12 @@ const CustomerJobTracker = () => {
             <div className="stat-label">Completed</div>
           </div>
           <div className="stat-card spent">
-            <div className="stat-number">${stats.totalSpent.toLocaleString()}</div>
+            <div className="stat-number">{new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }).format(stats.totalSpent)}</div>
             <div className="stat-label">Total Spent</div>
           </div>
         </div>
@@ -415,22 +425,22 @@ const CustomerJobTracker = () => {
           ) : (
             <div className="jobs-grid">
               {filteredJobs.map(job => (
-                <div key={job._id} className="job-card" onClick={() => handleJobClick(job)}>
-                  <div className="job-header">
+                <div key={job._id} className="job-card">
+                  <div className="job-header" onClick={() => handleJobClick(job)}>
                     <h3 className="job-title">{job.title}</h3>
                     <span className={`status-badge ${job.status}`}>
                       {job.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </span>
                   </div>
                   
-                  <div className="job-meta">
+                  <div className="job-meta" onClick={() => handleJobClick(job)}>
                     <div className="job-number">#{job.jobNumber}</div>
                     <div className="job-date">
                       {new Date(job.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                   
-                  <div className="job-details">
+                  <div className="job-details" onClick={() => handleJobClick(job)}>
                     <p className="job-description">{job.description}</p>
                     <div className="job-service">
                       <span className="service-category">
@@ -439,16 +449,16 @@ const CustomerJobTracker = () => {
                     </div>
                   </div>
                   
-                  <div className="job-footer-simple">
+                  <div className="job-footer-simple" onClick={() => handleJobClick(job)}>
                     <div className="vendor-name-only">
                       Vendor: {job.vendor?.name || 'TBD'}
                     </div>
                     <div className="job-price">
-                      ${job.pricing?.amount?.toLocaleString() || 'TBD'}
+                      {formatPrice(job)}
                     </div>
                   </div>
                   
-                  <div className="job-progress">
+                  <div className="job-progress" onClick={() => handleJobClick(job)}>
                     <div className="progress-bar">
                       <div 
                         className="progress-fill" 
@@ -456,6 +466,50 @@ const CustomerJobTracker = () => {
                       ></div>
                     </div>
                     <span className="progress-text">{getJobProgress(job.status)}% Complete</span>
+                  </div>
+
+                  {/* Quick Actions for Customer */}
+                  <div className="job-actions">
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => handleJobClick(job)}
+                    >
+                      View Details
+                    </button>
+                    
+                    {job.status === 'accepted' && (
+                      <button 
+                        className="btn btn-success"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm('Are you sure the work has been completed satisfactorily?')) {
+                            handleQuickStatusUpdate(job._id, 'completed');
+                          }
+                        }}
+                      >
+                        ✓ Confirm Work Done
+                      </button>
+                    )}
+                    
+                    {job.status === 'pending' && (
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm('Are you sure you want to cancel this request?')) {
+                            handleQuickStatusUpdate(job._id, 'cancelled');
+                          }
+                        }}
+                      >
+                        Cancel Request
+                      </button>
+                    )}
+                    
+                    {(job.status === 'completed' || job.status === 'cancelled') && (
+                      <div className="job-final-status">
+                        <span className="status-note">Job {job.status}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

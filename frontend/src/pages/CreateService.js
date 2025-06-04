@@ -440,16 +440,16 @@ const CreateService = () => {
 
           {/* Submit Button */}
           <div className="form-actions">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => navigate('/vendor/jobs')}
               className="btn btn-secondary"
               disabled={loading}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary"
               disabled={loading}
             >

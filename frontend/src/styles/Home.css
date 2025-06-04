@@ -2035,8 +2035,8 @@ body {
   border-radius: 8px;
   font-size: 14px;
   margin: 16px 0;
-  text-align: center;
-}
+    text-align: center;
+  }
 
 /* Enhanced CTA button */
 .cta-button {

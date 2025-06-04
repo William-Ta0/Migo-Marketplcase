@@ -101,17 +101,9 @@ const jobSchema = new mongoose.Schema({
     type: String,
     enum: [
       'pending',        // Initial request from customer
-      'reviewing',      // Vendor reviewing the request
-      'quoted',         // Vendor provided custom quote
       'accepted',       // Vendor accepted the job
-      'rejected',       // Vendor rejected the job
-      'confirmed',      // Customer confirmed and paid
-      'in_progress',    // Work has started
-      'completed',      // Work completed by vendor
-      'delivered',      // Delivered to customer
       'cancelled',      // Cancelled by either party
-      'disputed',       // There's a dispute
-      'closed'          // Job finished and closed
+      'completed'       // Work completed and customer confirmed
     ],
     default: 'pending',
   },

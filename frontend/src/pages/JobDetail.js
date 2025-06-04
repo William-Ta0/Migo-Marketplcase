@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getJobById, updateJobStatus, addJobMessage } from '../api/jobApi';
 import { useAuth } from '../context/AuthContext';
+import { auth } from '../firebase/config';
 import JobStatusManager from '../components/JobStatusManager';
 import JobMessaging from '../components/JobMessaging';
 import JobTimeline from '../components/JobTimeline';
+import ReviewSubmissionForm from '../components/ReviewSubmissionForm';
+import ReviewCard from '../components/ReviewCard';
+import { reviewApi } from '../api/reviewApi';
 import '../styles/JobDetail.css';
 
 const JobDetail = () => {
@@ -15,12 +19,11 @@ const JobDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [existingReview, setExistingReview] = useState(null);
+  const [reviewLoading, setReviewLoading] = useState(false);
 
-  useEffect(() => {
-    fetchJobDetail();
-  }, [id]);
-
-  const fetchJobDetail = async () => {
+  const fetchJobDetail = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -37,7 +40,36 @@ const JobDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  const fetchExistingReview = useCallback(async () => {
+    try {
+      setReviewLoading(true);
+      const response = await reviewApi.getJobReview(id);
+      
+      // Backend returns { review: reviewData } format
+      if (response && response.review) {
+        setExistingReview(response.review);
+      } else {
+        setExistingReview(null);
+      }
+    } catch (err) {
+      // No review exists yet, which is fine
+      setExistingReview(null);
+    } finally {
+      setReviewLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchJobDetail();
+  }, [fetchJobDetail]);
+
+  useEffect(() => {
+    if (job && user) {
+      fetchExistingReview();
+    }
+  }, [job, user, fetchExistingReview]);
 
   const handleStatusUpdate = async (newStatus, reason, additionalData = {}) => {
     try {
@@ -70,66 +102,36 @@ const JobDetail = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      'pending': '#f59e0b',
-      'reviewing': '#3b82f6',
-      'quoted': '#8b5cf6',
-      'accepted': '#10b981',
-      'confirmed': '#059669',
-      'in_progress': '#0ea5e9',
-      'completed': '#22c55e',
-      'delivered': '#16a34a',
-      'cancelled': '#ef4444',
-      'disputed': '#dc2626',
-      'closed': '#6b7280'
-    };
-    return colors[status] || '#6b7280';
+  const handleReviewSubmit = async (reviewData) => {
+    try {
+      // The ReviewSubmissionForm will handle the API call
+      // After successful submission, refresh the review data
+      await fetchExistingReview();
+      setShowReviewForm(false);
+      alert('Review submitted successfully!');
+    } catch (err) {
+      console.error('Error handling review submission:', err);
+    }
   };
 
-  const getStatusText = (status) => {
-    const statusTexts = {
-      'pending': 'Pending Review',
-      'reviewing': 'Under Review',
-      'quoted': 'Quote Provided',
-      'accepted': 'Accepted',
-      'confirmed': 'Confirmed',
-      'in_progress': 'In Progress',
-      'completed': 'Completed',
-      'delivered': 'Delivered',
-      'cancelled': 'Cancelled',
-      'disputed': 'Disputed',
-      'closed': 'Closed'
-    };
-    return statusTexts[status] || status;
-  };
-
-  const getProgressPercentage = (currentStatus) => {
-    const statusOrder = ['pending', 'confirmed', 'in_progress', 'completed', 'delivered'];
-    const currentIndex = statusOrder.indexOf(currentStatus);
+  // Check if user can leave a review
+  const canLeaveReview = () => {
+    if (!job || !user) return false;
     
-    // Debug logging
-    console.log('Current status:', currentStatus, 'Index:', currentIndex);
+    // Only customers can leave reviews
+    const isCustomer = job.customer._id === user?.uid || 
+                      job.customer.firebaseUid === user?.uid ||
+                      job.customer._id === user?._id ||
+                      job.customer.firebaseUid === user?._id;
     
-    // If status not found or is the first status, return 0
-    if (currentIndex <= 0) return 0;
+    if (!isCustomer) return false;
     
-    // Calculate percentage based on completed steps
-    // We use currentIndex instead of currentIndex + 1 to show progress to current step
-    const percentage = Math.min((currentIndex / (statusOrder.length - 1)) * 100, 100);
-    console.log('Progress percentage:', percentage);
-    return percentage;
-  };
-
-  const getStepStatusText = (status) => {
-    const stepTexts = {
-      'pending': 'Pending',
-      'confirmed': 'Confirmed', 
-      'in_progress': 'In Progress',
-      'completed': 'Completed',
-      'delivered': 'Delivered'
-    };
-    return stepTexts[status] || status;
+    // Job must be completed
+    const jobCompleted = job.status === 'completed';
+    if (!jobCompleted) return false;
+    
+    // No existing review
+    return !existingReview;
   };
 
   const formatDate = (dateString) => {
@@ -185,7 +187,12 @@ const JobDetail = () => {
           <div className="job-header-content">
             <div className="job-title-section">
               <h1>{job.title}</h1>
-              <p className="job-id">Job #{job.jobNumber || job._id.slice(-8).toUpperCase()}</p>
+              <div className="job-meta">
+                <p className="job-id">Job #{job.jobNumber || job._id.slice(-8).toUpperCase()}</p>
+                <div className={`status-badge status-${job.status}`}>
+                  {job.status.toUpperCase()}
+                </div>
+              </div>
             </div>
           </div>
           <div className="job-header-actions">
@@ -220,6 +227,12 @@ const JobDetail = () => {
             onClick={() => setActiveTab('timeline')}
           >
             Timeline
+          </button>
+          <button
+            className={`tab ${activeTab === 'reviews' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reviews')}
+          >
+            Reviews
           </button>
         </div>
 
@@ -402,6 +415,59 @@ const JobDetail = () => {
               isVendor={isVendor}
               isCustomer={isCustomer}
             />
+          )}
+
+          {activeTab === 'reviews' && (
+            <div className="reviews-tab">
+              {/* Show existing review if it exists */}
+              {existingReview ? (
+                <div className="existing-review">
+                  <h4>{isCustomer ? 'Your Review' : 'Customer Review'}</h4>
+                  <ReviewCard review={existingReview} />
+                </div>
+              ) : (
+                <>
+                  {/* Show "Leave Review" button only for customers who can review */}
+                  {canLeaveReview() && (
+                    <div>
+                      <button onClick={() => setShowReviewForm(true)} className="btn btn-primary">
+                        Leave a Review
+                      </button>
+                      {showReviewForm && (
+                        <div className="review-form-container">
+                          <ReviewSubmissionForm
+                            job={job}
+                            onReviewSubmitted={handleReviewSubmit}
+                            onCancel={() => setShowReviewForm(false)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Show appropriate message when no review exists */}
+                  {!canLeaveReview() && (
+                    <div className="no-review-message">
+                      <p>
+                        {isCustomer 
+                          ? job?.status === 'completed'
+                            ? 'No review has been submitted yet.'
+                            : 'You can leave a review once the job is completed.'
+                          : 'No review has been submitted for this job yet.'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+              
+              {reviewLoading && (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <div className="loading-spinner"></div>
+                  <p>Loading review...</p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
