@@ -1,47 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { getJobs, getJobStats, updateJobStatus } from '../api/jobApi';
 import { useAuth } from '../context/AuthContext';
 import '../styles/JobsDashboard.css';
 
 const JobsDashboard = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('customer'); // customer or vendor
+  const [activeFilter, setActiveFilter] = useState('all');
   const [filters, setFilters] = useState({
     status: 'all',
     page: 1,
-    limit: 10
+    limit: 50
   });
+
+  // Filter options for the new UI (same as customer dashboard)
+  const filterOptions = [
+    { key: 'all', label: 'All Jobs' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'reviewing', label: 'Reviewing' },
+    { key: 'confirmed', label: 'Confirmed' },
+    { key: 'in_progress', label: 'In Progress' },
+    { key: 'completed', label: 'Completed' },
+    { key: 'cancelled', label: 'Cancelled' },
+  ];
 
   useEffect(() => {
     fetchData();
-  }, [activeTab, filters]);
+  }, [filters]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError('');
       
+      // Always fetch vendor jobs since this page is vendor-only
+      console.log('Fetching vendor jobs with filters:', filters);
+      console.log('Current user:', user?.uid);
+      
       // Fetch jobs and stats
       const [jobsResponse, statsResponse] = await Promise.all([
-        getJobs({ ...filters, role: activeTab }),
-        getJobStats(activeTab)
+        getJobs({ ...filters, role: 'vendor' }),
+        getJobStats('vendor')
       ]);
 
-      if (jobsResponse.success) {
-        setJobs(jobsResponse.data);
+      console.log('Jobs response:', jobsResponse);
+      console.log('Stats response:', statsResponse);
+
+      if (jobsResponse && jobsResponse.success) {
+        setJobs(jobsResponse.data || []);
+      } else {
+        console.warn('No jobs data received');
+        setJobs([]);
       }
 
-      if (statsResponse.success) {
-        setStats(statsResponse.data.stats);
+      if (statsResponse && statsResponse.success) {
+        setStats(statsResponse.data?.stats || statsResponse.data || {});
+      } else {
+        console.warn('No stats data received');
+        setStats({});
       }
     } catch (err) {
-      setError('Failed to load jobs data');
       console.error('Error fetching jobs:', err);
+      setError('Unable to load vendor jobs. Please check your connection and try again.');
+      setJobs([]);
+      setStats({});
     } finally {
       setLoading(false);
     }
@@ -52,6 +78,16 @@ const JobsDashboard = () => {
       ...prev,
       [key]: value,
       page: 1 // Reset to first page when filters change
+    }));
+  };
+
+  // Handle filter tab change
+  const handleFilterTabChange = (filterKey) => {
+    setActiveFilter(filterKey);
+    setFilters(prev => ({
+      ...prev,
+      status: filterKey === 'all' ? 'all' : filterKey,
+      page: 1
     }));
   };
 
@@ -116,6 +152,35 @@ const JobsDashboard = () => {
     }
   };
 
+  // Calculate statistics with proper exclusions
+  const calculatedStats = useMemo(() => {
+    const activeJobs = jobs.filter(job => job.status === 'in_progress' || job.status === 'confirmed');
+    const pendingJobs = jobs.filter(job => job.status === 'pending' || job.status === 'reviewing');
+    const completedJobs = jobs.filter(job => job.status === 'completed');
+    
+    // Exclude cancelled jobs from total revenue calculation
+    const revenueJobs = jobs.filter(job => job.status !== 'cancelled');
+    const totalRevenue = revenueJobs.reduce((sum, job) => {
+      const amount = job.selectedPackage?.price || job.pricing?.amount || 0;
+      return sum + amount;
+    }, 0);
+
+    return {
+      total: jobs.length,
+      active: activeJobs.length,
+      pending: pendingJobs.length,
+      completed: completedJobs.length,
+      totalRevenue: totalRevenue,
+      ...stats // Include any other stats from API
+    };
+  }, [jobs, stats]);
+
+  // Filter jobs based on active filter
+  const filteredJobs = useMemo(() => {
+    if (activeFilter === 'all') return jobs;
+    return jobs.filter(job => job.status === activeFilter);
+  }, [jobs, activeFilter]);
+
   if (loading) {
     return (
       <div className="jobs-dashboard">
@@ -132,24 +197,8 @@ const JobsDashboard = () => {
       <div className="dashboard-container">
         {/* Header */}
         <div className="dashboard-header">
-          <h1>Jobs Dashboard</h1>
-          <p>Manage your bookings and orders</p>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="tab-navigation">
-          <button 
-            className={`tab ${activeTab === 'customer' ? 'active' : ''}`}
-            onClick={() => setActiveTab('customer')}
-          >
-            As Customer
-          </button>
-          <button 
-            className={`tab ${activeTab === 'vendor' ? 'active' : ''}`}
-            onClick={() => setActiveTab('vendor')}
-          >
-            As Vendor
-          </button>
+          <h1>Vendor Jobs Dashboard</h1>
+          <p>Manage your service orders and bookings</p>
         </div>
 
         {/* Statistics Cards */}
@@ -157,63 +206,60 @@ const JobsDashboard = () => {
           <div className="stat-card">
             <div className="stat-icon">📊</div>
             <div className="stat-info">
-              <h3>{stats.total || 0}</h3>
+              <h3>{calculatedStats.total || 0}</h3>
               <p>Total Jobs</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">⏳</div>
             <div className="stat-info">
-              <h3>{stats.pending || 0}</h3>
+              <h3>{calculatedStats.pending || 0}</h3>
               <p>Pending</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">🔄</div>
             <div className="stat-info">
-              <h3>{stats.in_progress || 0}</h3>
-              <p>In Progress</p>
+              <h3>{calculatedStats.active || 0}</h3>
+              <p>Active</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">✅</div>
             <div className="stat-info">
-              <h3>{stats.completed || 0}</h3>
+              <h3>{calculatedStats.completed || 0}</h3>
               <p>Completed</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">💰</div>
             <div className="stat-info">
-              <h3>${stats.totalRevenue || 0}</h3>
+              <h3>${calculatedStats.totalRevenue || 0}</h3>
               <p>Total Value</p>
             </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="filters-bar">
-          <div className="filter-group">
-            <label htmlFor="status-filter">Status:</label>
-            <select 
-              id="status-filter"
-              value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-            >
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+        {/* Filter Tabs (same style as customer dashboard) */}
+        <div className="filter-section">
+          <div className="filter-tabs">
+            {filterOptions.map(filter => (
+              <button
+                key={filter.key}
+                className={`filter-tab ${activeFilter === filter.key ? 'active' : ''}`}
+                onClick={() => handleFilterTabChange(filter.key)}
+              >
+                {filter.label}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Jobs List */}
         <div className="jobs-section">
           <h2>
-            {activeTab === 'customer' ? 'Your Bookings' : 'Your Orders'}
-            <span className="count">({jobs.length})</span>
+            Your Orders
+            <span className="count">({filteredJobs.length})</span>
           </h2>
 
           {error && (
@@ -225,26 +271,26 @@ const JobsDashboard = () => {
             </div>
           )}
 
-          {jobs.length === 0 && !error ? (
+          {filteredJobs.length === 0 && !error ? (
             <div className="empty-state">
               <div className="empty-icon">📝</div>
               <h3>No jobs found</h3>
               <p>
-                {activeTab === 'customer' 
-                  ? "You haven't made any bookings yet."
-                  : "You don't have any orders yet."
+                {activeFilter === 'all' 
+                  ? "You don't have any orders yet."
+                  : `No ${activeFilter} jobs found. Try adjusting your filter.`
                 }
               </p>
               <Link 
-                to="/categories" 
+                to="/services/create" 
                 className="btn btn-primary"
               >
-                Browse Services
+                Create Service
               </Link>
             </div>
           ) : (
             <div className="jobs-list">
-              {jobs.map((job) => (
+              {filteredJobs.map((job) => (
                 <div key={job._id} className="job-card">
                   <div className="job-header">
                     <div className="job-info">
@@ -261,33 +307,18 @@ const JobsDashboard = () => {
 
                   <div className="job-details">
                     <div className="job-parties">
-                      {activeTab === 'customer' ? (
-                        <div className="party-info">
-                          <span className="label">Vendor:</span>
-                          <div className="party">
-                            {job.vendor.avatar && (
-                              <img src={job.vendor.avatar} alt={job.vendor.name} />
-                            )}
-                            <span>{job.vendor.name}</span>
-                          </div>
+                      <div className="party-info">
+                        <span className="label">Customer:</span>
+                        <div className="party">
+                          <span>{job.customer?.name || 'Unknown Customer'}</span>
                         </div>
-                      ) : (
-                        <div className="party-info">
-                          <span className="label">Customer:</span>
-                          <div className="party">
-                            {job.customer.avatar && (
-                              <img src={job.customer.avatar} alt={job.customer.name} />
-                            )}
-                            <span>{job.customer.name}</span>
-                          </div>
-                        </div>
-                      )}
+                      </div>
                     </div>
 
                     <div className="job-meta">
                       <div className="meta-item">
                         <span className="label">Service:</span>
-                        <span>{job.service.title}</span>
+                        <span>{job.service?.title || job.title}</span>
                       </div>
                       {job.selectedPackage && (
                         <div className="meta-item">
@@ -303,7 +334,7 @@ const JobsDashboard = () => {
                         <span className="label">Created:</span>
                         <span>{formatDate(job.createdAt)}</span>
                       </div>
-                      {job.scheduling.preferredDate && (
+                      {job.scheduling?.preferredDate && (
                         <div className="meta-item">
                           <span className="label">Preferred Date:</span>
                           <span>{formatDate(job.scheduling.preferredDate)}</span>
@@ -321,7 +352,7 @@ const JobsDashboard = () => {
                     </Link>
                     
                     {/* Enhanced status-based actions */}
-                    {job.status === 'pending' && activeTab === 'vendor' && (
+                    {job.status === 'pending' && (
                       <div className="vendor-pending-actions">
                         <button 
                           className="btn btn-success"
@@ -344,7 +375,7 @@ const JobsDashboard = () => {
                       </div>
                     )}
                     
-                    {job.status === 'confirmed' && activeTab === 'vendor' && (
+                    {job.status === 'confirmed' && (
                       <button 
                         className="btn btn-success"
                         onClick={() => handleQuickStatusUpdate(job._id, 'in_progress')}
@@ -353,47 +384,12 @@ const JobsDashboard = () => {
                       </button>
                     )}
                     
-                    {job.status === 'in_progress' && activeTab === 'vendor' && (
+                    {job.status === 'in_progress' && (
                       <button 
                         className="btn btn-success"
                         onClick={() => handleQuickStatusUpdate(job._id, 'completed')}
                       >
                         Mark Complete
-                      </button>
-                    )}
-                    
-                    {job.status === 'completed' && activeTab === 'customer' && (
-                      <div className="customer-completed-actions">
-                        <button 
-                          className="btn btn-success"
-                          onClick={() => handleQuickStatusUpdate(job._id, 'delivered')}
-                        >
-                          Accept Delivery
-                        </button>
-                        <button 
-                          className="btn btn-warning"
-                          onClick={() => handleQuickStatusUpdate(job._id, 'disputed')}
-                        >
-                          Dispute
-                        </button>
-                      </div>
-                    )}
-                    
-                    {job.status === 'accepted' && activeTab === 'customer' && (
-                      <button 
-                        className="btn btn-success"
-                        onClick={() => handleQuickStatusUpdate(job._id, 'confirmed')}
-                      >
-                        Confirm & Pay
-                      </button>
-                    )}
-                    
-                    {job.status === 'delivered' && activeTab === 'customer' && (
-                      <button 
-                        className="btn btn-success"
-                        onClick={() => handleQuickStatusUpdate(job._id, 'closed')}
-                      >
-                        Close Job
                       </button>
                     )}
                     

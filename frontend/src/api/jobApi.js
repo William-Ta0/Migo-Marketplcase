@@ -1,10 +1,15 @@
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://migo-backend-url.com/api' 
-  : 'http://localhost:5001/api';
+import { auth } from '../firebase/config';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 // Helper function to get auth headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+const getAuthHeaders = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('No authenticated user found');
+  }
+  
+  const token = await user.getIdToken();
   return {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
@@ -12,8 +17,13 @@ const getAuthHeaders = () => {
 };
 
 // Helper function to get auth headers for file upload
-const getFileUploadHeaders = () => {
-  const token = localStorage.getItem('token');
+const getFileUploadHeaders = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('No authenticated user found');
+  }
+  
+  const token = await user.getIdToken();
   return {
     'Authorization': `Bearer ${token}`
   };
@@ -22,9 +32,10 @@ const getFileUploadHeaders = () => {
 // Create a new job/booking
 export const createJob = async (jobData) => {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs`, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers,
       body: JSON.stringify(jobData)
     });
 
@@ -53,9 +64,10 @@ export const getJobs = async (params = {}) => {
       }
     });
 
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs?${queryParams}`, {
       method: 'GET',
-      headers: getAuthHeaders()
+      headers
     });
 
     const data = await response.json();
@@ -64,7 +76,11 @@ export const getJobs = async (params = {}) => {
       throw new Error(data.message || 'Failed to fetch jobs');
     }
 
-    return data;
+    // Return consistent format
+    return {
+      success: true,
+      data: data.data || data // Handle both formats
+    };
   } catch (error) {
     console.error('Error fetching jobs:', error);
     throw error;
@@ -74,9 +90,10 @@ export const getJobs = async (params = {}) => {
 // Get a specific job by ID
 export const getJobById = async (jobId) => {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
       method: 'GET',
-      headers: getAuthHeaders()
+      headers
     });
 
     const data = await response.json();
@@ -96,10 +113,11 @@ export const getJobById = async (jobId) => {
 export const updateJobStatus = async (jobId, status, reason = '', additionalData = {}) => {
   try {
     const requestBody = { status, reason, ...additionalData };
+    const headers = await getAuthHeaders();
     
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/status`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
+      headers,
       body: JSON.stringify(requestBody)
     });
 
@@ -119,9 +137,10 @@ export const updateJobStatus = async (jobId, status, reason = '', additionalData
 // Add message to job
 export const addJobMessage = async (jobId, message) => {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/messages`, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers,
       body: JSON.stringify({ message })
     });
 
@@ -144,9 +163,10 @@ export const uploadJobFile = async (jobId, file) => {
     const formData = new FormData();
     formData.append('file', file);
 
+    const headers = await getFileUploadHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/upload`, {
       method: 'POST',
-      headers: getFileUploadHeaders(),
+      headers,
       body: formData
     });
 
@@ -166,9 +186,10 @@ export const uploadJobFile = async (jobId, file) => {
 // Get job statistics
 export const getJobStats = async (role = 'customer') => {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/stats?role=${role}`, {
       method: 'GET',
-      headers: getAuthHeaders()
+      headers
     });
 
     const data = await response.json();
@@ -177,7 +198,11 @@ export const getJobStats = async (role = 'customer') => {
       throw new Error(data.message || 'Failed to fetch job statistics');
     }
 
-    return data;
+    // Return consistent format
+    return {
+      success: true,
+      data: data.data || data // Handle both formats
+    };
   } catch (error) {
     console.error('Error fetching job statistics:', error);
     throw error;
@@ -187,9 +212,10 @@ export const getJobStats = async (role = 'customer') => {
 // Get available status transitions for a job
 export const getJobStatusTransitions = async (jobId) => {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/transitions`, {
       method: 'GET',
-      headers: getAuthHeaders()
+      headers
     });
 
     const data = await response.json();
@@ -201,6 +227,28 @@ export const getJobStatusTransitions = async (jobId) => {
     return data;
   } catch (error) {
     console.error('Error fetching job status transitions:', error);
+    throw error;
+  }
+};
+
+// Get job timeline with detailed history
+export const getJobTimeline = async (jobId) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/timeline`, {
+      method: 'GET',
+      headers
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch job timeline');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching job timeline:', error);
     throw error;
   }
 }; 

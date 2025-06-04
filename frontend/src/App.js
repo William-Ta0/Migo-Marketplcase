@@ -8,7 +8,7 @@ import Register from './pages/Register';
 import RoleSelection from './pages/RoleSelection';
 import Profile from './pages/Profile';
 import VendorOnboarding from './pages/VendorOnboarding';
-import CreateItem from './pages/CreateItem';
+import CreateService from './pages/CreateService';
 import ItemDetails from './pages/ItemDetails';
 import CategoryBrowser from './pages/CategoryBrowser';
 import ServicesByCategory from './pages/ServicesByCategory';
@@ -16,6 +16,8 @@ import ServiceDetail from './pages/ServiceDetail';
 import ServicesSearch from './pages/ServicesSearch';
 import JobsDashboard from './pages/JobsDashboard';
 import JobDetail from './pages/JobDetail';
+import CustomerJobTracker from './components/CustomerJobTracker';
+import RoleBasedJobsRedirect from './components/RoleBasedJobsRedirect';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
@@ -55,11 +57,31 @@ function App() {
               }
             />
             
-            {/* Jobs Dashboard - accessible to all authenticated users */}
+            {/* Jobs redirect - role-based routing */}
             <Route
               path="/jobs"
               element={
                 <PrivateRoute>
+                  <RoleBasedJobsRedirect />
+                </PrivateRoute>
+              }
+            />
+            
+            {/* Customer Job Tracker - enhanced tracking for customers */}
+            <Route
+              path="/my-jobs"
+              element={
+                <PrivateRoute requiredRole="customer">
+                  <CustomerJobTracker />
+                </PrivateRoute>
+              }
+            />
+            
+            {/* Vendor Jobs Dashboard */}
+            <Route
+              path="/vendor/jobs"
+              element={
+                <PrivateRoute requiredRole="vendor">
                   <JobsDashboard />
                 </PrivateRoute>
               }
@@ -85,10 +107,10 @@ function App() {
               }
             />
             <Route
-              path="/create-item"
+              path="/create-service"
               element={
                 <PrivateRoute requiredRole="vendor">
-                  <CreateItem />
+                  <CreateService />
                 </PrivateRoute>
               }
             />

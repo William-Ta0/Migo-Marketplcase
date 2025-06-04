@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, userProfile } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -16,24 +16,60 @@ const Header = () => {
   };
 
   return (
-    <header>
-      <div className="container">
-        <h1>Migo</h1>
-        <nav>
-          <Link to="/">Home</Link>
+    <header className="app-header">
+      <div className="header-container">
+        <Link to="/" className="logo">
+          <h1>Migo</h1>
+        </Link>
+        
+        <nav className="nav-menu">
           {currentUser ? (
             <>
-              <Link to="/create">Add Item</Link>
-              <Link to="/profile">Profile</Link>
-              <button onClick={handleLogout} className="btn">
+              {/* Public Browse Links - Available to all authenticated users */}
+              <Link to="/services" className="nav-link">Browse Services</Link>
+              <Link to="/categories" className="nav-link">Categories</Link>
+              
+              {/* Customer Navigation */}
+              {(!userProfile?.role || userProfile?.role === 'customer') && (
+                <>
+                  <Link to="/my-jobs" className="nav-link customer-nav">
+                    <span className="nav-icon">📋</span>
+                    My Jobs
+                  </Link>
+                </>
+              )}
+              
+              {/* Vendor Navigation */}
+              {userProfile?.role === 'vendor' && (
+                <>
+                  <Link to="/jobs" className="nav-link">
+                    <span className="nav-icon">💼</span>
+                    My Orders
+                  </Link>
+                  <Link to="/create-service" className="nav-link">
+                    <span className="nav-icon">➕</span>
+                    Add Service
+                  </Link>
+                </>
+              )}
+              
+              {/* Common Authenticated Navigation */}
+              <Link to="/profile" className="nav-link">
+                <span className="nav-icon">👤</span>
+                Profile
+              </Link>
+              
+              <button onClick={handleLogout} className="logout-btn">
+                <span className="nav-icon">🚪</span>
                 Logout
               </button>
             </>
           ) : (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
-            </>
+            /* Non-authenticated Navigation */
+            <div className="auth-links">
+              <Link to="/login" className="nav-link">Login</Link>
+              <Link to="/register" className="nav-link register-link">Register</Link>
+            </div>
           )}
         </nav>
       </div>

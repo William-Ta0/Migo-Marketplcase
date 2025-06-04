@@ -1,14 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getServices, getFeaturedServices, getServicesByCategory } from '../api/serviceApi';
 import '../styles/Home.css';
 
 const Home = () => {
   const { currentUser } = useAuth();
-  const [deliverySelected, setDeliverySelected] = useState(true);
   const [address, setAddress] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
+  
+  // Real data state
+  const [topServices, setTopServices] = useState([]);
+  const [featuredVendors, setFeaturedVendors] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const servicesRef = useRef(null);
   const topServicesRef = useRef(null);
@@ -55,120 +62,131 @@ const Home = () => {
     };
   }, []);
 
-  // Mock promotional service data with more items for scrolling
-  const promotionalServices = [
+  useEffect(() => {
+    fetchRealData();
+  }, []);
+
+  const fetchRealData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch featured services (top rated)
+      const [featuredResponse, allServicesResponse] = await Promise.all([
+        getFeaturedServices({ limit: 6 }),
+        getServices({ limit: 20, sort: 'rating', order: 'desc' })
+      ]);
+
+      if (featuredResponse?.data) {
+        setTopServices(featuredResponse.data);
+      }
+
+      if (allServicesResponse?.data) {
+        // Extract unique vendors from services
+        const uniqueVendors = new Map();
+        allServicesResponse.data.forEach(service => {
+          if (service.vendor && !uniqueVendors.has(service.vendor._id)) {
+            uniqueVendors.set(service.vendor._id, {
+              _id: service.vendor._id,
+              name: service.vendor.name,
+              avatar: service.vendor.avatar,
+              rating: service.vendor.rating || { average: 4.5, count: 10 },
+              verified: service.vendor.verified || true,
+              category: service.category?.name || 'General Services'
+            });
+          }
+        });
+        setFeaturedVendors(Array.from(uniqueVendors.values()).slice(0, 6));
+
+        // Extract unique categories
+        const uniqueCategories = new Map();
+        allServicesResponse.data.forEach(service => {
+          if (service.category && !uniqueCategories.has(service.category._id)) {
+            uniqueCategories.set(service.category._id, {
+              _id: service.category._id,
+              name: service.category.name,
+              slug: service.category.slug,
+              icon: getCategoryIcon(service.category.name),
+              image: service.images?.[0] || getDefaultCategoryImage(service.category.name)
+            });
+          }
+        });
+        setCategories(Array.from(uniqueCategories.values()).slice(0, 8));
+      }
+
+    } catch (error) {
+      console.error('Error fetching real data:', error);
+      setError('Unable to load real data');
+      // Fallback to mock data
+      setTopServices(mockTopServices);
+      setFeaturedVendors(mockFeaturedVendors);
+      setCategories(mockCategories);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper functions for icons and images
+  const getCategoryIcon = (categoryName) => {
+    const icons = {
+      'Plumbing': '🔧',
+      'Electrical': '💡',
+      'Catering': '🍽️',
+      'Photography': '📸',
+      'Gardening': '🌱',
+      'Cleaning': '🧹',
+      'Web Development': '💻',
+      'Graphic Design': '🎨',
+      'Home Services': '🏠',
+      'Personal Services': '👤',
+      'Business Services': '💼',
+      'Automotive': '🚗',
+      'Health & Wellness': '💪',
+      'Technology': '🔧'
+    };
+    return icons[categoryName] || '⚡';
+  };
+
+  const getDefaultCategoryImage = (categoryName) => {
+    const images = {
+      'Plumbing': 'https://images.unsplash.com/photo-1542013936693-884638332954?q=80&w=240&auto=format&fit=crop',
+      'Electrical': 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=240&auto=format&fit=crop',
+      'Catering': 'https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=240&auto=format&fit=crop',
+      'Photography': 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=240&auto=format&fit=crop',
+      'Gardening': 'https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?q=80&w=240&auto=format&fit=crop',
+      'Cleaning': 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=240&auto=format&fit=crop'
+    };
+    return images[categoryName] || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?q=80&w=240&auto=format&fit=crop';
+  };
+
+  // Mock data as fallback
+  const mockTopServices = [
     {
-      id: 1,
-      name: "Electrician",
-      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=2069&auto=format&fit=crop',
-      discount: '15%',
-      daysRemaining: 6
-    },
-    {
-      id: 2,
-      name: "Plumbing",
-      image: 'https://images.unsplash.com/photo-1542013936693-884638332954?q=80&w=2070&auto=format&fit=crop',
-      discount: '10%',
-      daysRemaining: 6
-    },
-    {
-      id: 3,
-      name: "Food Catering",
-      image: 'https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=2070&auto=format&fit=crop',
-      discount: '25%',
-      daysRemaining: 7
-    },
-    {
-      id: 4,
-      name: "Photography",
-      image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2089&auto=format&fit=crop',
-      discount: '20%',
-      daysRemaining: 8
+      _id: 'mock-1',
+      title: 'Professional Web Development',
+      shortDescription: 'Modern, responsive websites',
+      images: ['https://images.unsplash.com/photo-1542013936693-884638332954?q=80&w=240&auto=format&fit=crop'],
+      pricing: { amount: 500 },
+      stats: { rating: { average: 4.8, count: 243 } },
+      vendor: { _id: 'v1', name: 'TechPro', avatar: null }
     }
   ];
-  
-  const topServices = [
+
+  const mockFeaturedVendors = [
     {
-      id: 1,
-      name: "Plumbing",
-      image: 'https://images.unsplash.com/photo-1542013936693-884638332954?q=80&w=2070&auto=format&fit=crop',
-      rating: 4.8,
-      reviews: 243
-    },
-    {
-      id: 2,
-      name: "Baking",
-      image: 'https://images.unsplash.com/photo-1483695028939-5bb13f8648b0?q=80&w=2070&auto=format&fit=crop',
-      rating: 4.9,
-      reviews: 187
-    },
-    {
-      id: 3,
-      name: "Gardening",
-      image: 'https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?q=80&w=2071&auto=format&fit=crop',
-      rating: 4.7,
-      reviews: 156
-    },
-    {
-      id: 4,
-      name: "Pool Cleaning",
-      image: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=2070&auto=format&fit=crop',
-      rating: 4.8,
-      reviews: 132
-    },
-    {
-      id: 5,
-      name: "Pet Care",
-      image: 'https://images.unsplash.com/photo-1560743641-3914f2c45636?q=80&w=2074&auto=format&fit=crop',
-      rating: 4.9,
-      reviews: 203
+      _id: 'vendor-1',
+      name: "Mike's Services",
+      avatar: null,
+      rating: { average: 4.8, count: 318 },
+      verified: true,
+      category: 'Home Services'
     }
   ];
-  
-  const featuredVendors = [
-    {
-      id: 1,
-      name: "Mike's Electrical",
-      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=2069&auto=format&fit=crop',
-      rating: 4.8,
-      reviews: 318,
-      verified: true
-    },
-    {
-      id: 2,
-      name: "John's Plumbing",
-      image: 'https://images.unsplash.com/photo-1542013936693-884638332954?q=80&w=2070&auto=format&fit=crop',
-      rating: 4.9,
-      reviews: 245,
-      verified: true
-    },
-    {
-      id: 3,
-      name: "Amy's Catering",
-      image: 'https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=2070&auto=format&fit=crop',
-      rating: 5.0,
-      reviews: 187,
-      verified: true
-    },
-    {
-      id: 4,
-      name: "David's Photography",
-      image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2089&auto=format&fit=crop',
-      rating: 4.7,
-      reviews: 203,
-      verified: false
-    }
+
+  const mockCategories = [
+    { _id: 'cat-1', name: "Plumbing", slug: "plumbing", icon: "🔧", image: 'https://images.unsplash.com/photo-1542013936693-884638332954?q=80&w=240&auto=format&fit=crop' }
   ];
-  
-  const categories = [
-    { name: "Plumbing", icon: "🔧", image: 'https://images.unsplash.com/photo-1542013936693-884638332954?q=80&w=240&auto=format&fit=crop' },
-    { name: "Electrical", icon: "💡", image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=240&auto=format&fit=crop' },
-    { name: "Catering", icon: "🍽️", image: 'https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=240&auto=format&fit=crop' },
-    { name: "Photography", icon: "📸", image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=240&auto=format&fit=crop' },
-    { name: "Gardening", icon: "🌱", image: 'https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?q=80&w=240&auto=format&fit=crop' },
-    { name: "Cleaning", icon: "🧹", image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=240&auto=format&fit=crop' }
-  ];
-  
+
   const promotionalBanners = [
     {
       id: 1,
@@ -176,7 +194,8 @@ const Home = () => {
       highlight: "Event Photography",
       description: "Professional photographers for your special occasions. Limited time offers!",
       image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2089&auto=format&fit=crop",
-      buttonText: "Book a Session"
+      buttonText: "Book a Session",
+      category: "photography"
     },
     {
       id: 2,
@@ -184,26 +203,54 @@ const Home = () => {
       highlight: "Catering",
       description: "Exquisite food and service for your events and gatherings. Start from $299.",
       image: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=2070&auto=format&fit=crop",
-      buttonText: "Order Catering"
+      buttonText: "Order Catering",
+      category: "catering"
     },
     {
       id: 3,
-      title: "Need a DJ for your party?",
-      highlight: "",
-      description: "Professional DJs for all occasions. Book now and get 15% off!",
+      title: "Need tech help?",
+      highlight: "IT Support",
+      description: "Professional IT support and computer repair services. Book now and get 15% off!",
       image: "https://images.unsplash.com/photo-1558458878-36c4321e1e82?q=80&w=2070&auto=format&fit=crop",
-      buttonText: "Find a DJ"
+      buttonText: "Get Support",
+      category: "technology"
     }
   ];
 
   const handleFindServices = () => {
-    if (address.trim()) {
-      // Navigate to services with location filter
-      navigate(`/services?location=${encodeURIComponent(address.trim())}&type=${deliverySelected ? 'delivery' : 'pickup'}`);
-    } else {
-      // Navigate to categories page if no address
-      navigate('/categories');
+    // Always navigate to browse services page
+    navigate('/services');
+  };
+
+  const handleBookService = (service) => {
+    navigate(`/services/${service._id}/book`);
+  };
+
+  const handleContactVendor = (vendor) => {
+    navigate(`/vendor/${vendor._id}/profile`);
+  };
+
+  const handleCategoryClick = async (category) => {
+    try {
+      // Check if category has services
+      const response = await getServicesByCategory(category.slug, { limit: 1 });
+      
+      if (response?.data && response.data.length > 0) {
+        // Navigate to services filtered by category
+        navigate(`/services?category=${category.slug}`);
+      } else {
+        // Show message for empty categories
+        alert(`Sorry, we currently don't have any services in the ${category.name} category. Please check back later!`);
+      }
+    } catch (error) {
+      console.error('Error checking category services:', error);
+      // Still navigate in case of API error
+      navigate(`/services?category=${category.slug}`);
     }
+  };
+
+  const handlePromoBannerClick = (banner) => {
+    navigate(`/services?category=${banner.category}`);
   };
 
   const scrollServices = (direction, ref) => {
@@ -215,6 +262,22 @@ const Home = () => {
 
   const toggleChat = () => {
     setChatOpen(!chatOpen);
+  };
+
+  const formatPrice = (service) => {
+    const amount = service.pricing?.amount || 0;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const getRating = (service) => {
+    return service.stats?.rating?.average || 4.5;
+  };
+
+  const getReviewCount = (service) => {
+    return service.stats?.rating?.count || 0;
   };
 
   return (
@@ -253,7 +316,7 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Hero Section with Background Image */}
+      {/* Hero Section - Simplified without delivery/pickup */}
       <section className="hero-section">
         <div className="hero-background"></div>
         <div className="hero-content">
@@ -261,26 +324,11 @@ const Home = () => {
           <p>Within a few clicks, find services that are accessible near you</p>
           
           <div className="search-box">
-            <div className="toggle-buttons">
-              <button 
-                className={`toggle-button ${deliverySelected ? 'active' : ''}`}
-                onClick={() => setDeliverySelected(true)}
-              >
-                <span className="toggle-icon">🏍️</span> Delivery
-              </button>
-              <button 
-                className={`toggle-button ${!deliverySelected ? 'active' : ''}`}
-                onClick={() => setDeliverySelected(false)}
-              >
-                <span className="toggle-icon">🏪</span> Pickup
-              </button>
-            </div>
-            
             <div className="address-input">
               <span className="address-icon">📍</span>
               <input 
                 type="text" 
-                placeholder="Enter Your Address" 
+                placeholder="Enter Your Address (Optional)" 
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
@@ -293,26 +341,6 @@ const Home = () => {
         </div>
         <div className="hero-image">
           <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=500&auto=format&fit=crop" alt="Home Service Professional" />
-        </div>
-      </section>
-
-      {/* Top Services - Black Background Section */}
-      <section className="top-services-section" ref={topServicesRef}>
-        <div className="services-grid">
-          {promotionalServices.map(service => (
-            <div key={service.id} className="service-card">
-              <div className="service-image" style={{ backgroundImage: `url(${service.image})` }}>
-                <div className="discount-badge">
-                  {service.discount}
-                  <span className="off-text">Off</span>
-                </div>
-              </div>
-              <div className="service-info">
-                <h3>{service.name}</h3>
-                <p className="days-remaining">{service.daysRemaining} Days Remaining</p>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -351,7 +379,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Top Rated Services Section */}
+      {/* Top Rated Services Section - Real Data */}
       <section className="top-rated-section">
         <div className="services-header">
           <h2>Top Rated Services</h2>
@@ -366,26 +394,37 @@ const Home = () => {
         </div>
         
         <div className="services-scroll-container">
-          <div className="services-grid" ref={servicesRef}>
-            {topServices.map(service => (
-              <div key={service.id} className="top-service-card">
-                <div className="service-image" style={{ backgroundImage: `url(${service.image})` }}></div>
-                <div className="service-info">
-                  <h3>{service.name}</h3>
-                  <div className="rating">
-                    <span className="stars">{'★'.repeat(Math.floor(service.rating))}{'☆'.repeat(5-Math.floor(service.rating))}</span>
-                    <span className="rating-number">{service.rating}</span>
-                    <span className="reviews">({service.reviews})</span>
+          {loading ? (
+            <div className="loading-message">Loading top services...</div>
+          ) : (
+            <div className="services-grid" ref={servicesRef}>
+              {topServices.map(service => (
+                <div key={service._id} className="top-service-card">
+                  <div 
+                    className="service-image" 
+                    style={{ backgroundImage: `url(${service.images?.[0] || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?q=80&w=400&auto=format&fit=crop'})` }}
+                  ></div>
+                  <div className="service-info">
+                    <h3>{service.title}</h3>
+                    <p className="service-description">{service.shortDescription}</p>
+                    <div className="rating">
+                      <span className="stars">{'★'.repeat(Math.floor(getRating(service)))}{'☆'.repeat(5-Math.floor(getRating(service)))}</span>
+                      <span className="rating-number">{getRating(service)}</span>
+                      <span className="reviews">({getReviewCount(service)})</span>
+                    </div>
+                    <div className="service-price">{formatPrice(service)}</div>
+                    <button className="book-now" onClick={() => handleBookService(service)}>
+                      Book Now
+                    </button>
                   </div>
-                  <button className="book-now">Book Now</button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Featured Vendors Section */}
+      {/* Featured Vendors Section - Real Data */}
       <section className="featured-vendors-section" ref={featuredVendorsRef}>
         <div className="services-header">
           <h2>Featured Vendors</h2>
@@ -400,44 +439,68 @@ const Home = () => {
         </div>
         
         <div className="services-scroll-container">
-          <div className="vendors-grid" ref={featuredVendorsRef}>
-            {featuredVendors.map(vendor => (
-              <div key={vendor.id} className="vendor-card">
-                <div className="vendor-image" style={{ backgroundImage: `url(${vendor.image})` }}></div>
-                <div className="vendor-info">
-                  <h3>{vendor.name}</h3>
-                  <div className="rating">
-                    <span className="stars">{'★'.repeat(Math.floor(vendor.rating))}{'☆'.repeat(5-Math.floor(vendor.rating))}</span>
-                    <span className="rating-number">{vendor.rating}</span>
-                    <span className="reviews">({vendor.reviews})</span>
+          {loading ? (
+            <div className="loading-message">Loading featured vendors...</div>
+          ) : (
+            <div className="vendors-grid" ref={featuredVendorsRef}>
+              {featuredVendors.map(vendor => (
+                <div key={vendor._id} className="vendor-card">
+                  <div className="vendor-image" style={{ 
+                    backgroundImage: vendor.avatar 
+                      ? `url(${vendor.avatar})` 
+                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  }}>
+                    {!vendor.avatar && (
+                      <div className="vendor-initial">{vendor.name.charAt(0)}</div>
+                    )}
                   </div>
-                  <div className="vendor-tags">
-                    {vendor.verified && <span className="verified-tag">✓ Verified</span>}
+                  <div className="vendor-info">
+                    <h3>{vendor.name}</h3>
+                    <p className="vendor-category">{vendor.category}</p>
+                    <div className="rating">
+                      <span className="stars">{'★'.repeat(Math.floor(vendor.rating.average))}{'☆'.repeat(5-Math.floor(vendor.rating.average))}</span>
+                      <span className="rating-number">{vendor.rating.average}</span>
+                      <span className="reviews">({vendor.rating.count})</span>
+                    </div>
+                    <div className="vendor-tags">
+                      {vendor.verified && <span className="verified-tag">✓ Verified</span>}
+                    </div>
+                    <button className="contact-now" onClick={() => handleContactVendor(vendor)}>
+                      Contact Now
+                    </button>
                   </div>
-                  <button className="contact-now">Contact Now</button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Search by Category Section */}
+      {/* Search by Category Section - Real Data with Proper Navigation */}
       <section className="categories-section" ref={categoriesRef}>
         <h2>Search by Service Category</h2>
         <div className="categories-scroll-container">
           <button className="scroll-button left" onClick={() => scrollServices('left', categoriesRef)}>
             <span>←</span>
           </button>
-          <div className="categories-grid">
-            {categories.map((category, index) => (
-              <div key={index} className="category-item">
-                <div className="category-image" style={{ backgroundImage: `url(${category.image})` }}>
-                  <div className="category-icon-overlay">{category.icon}</div>
+          <div className="categories-grid" ref={categoriesRef}>
+            {loading ? (
+              <div className="loading-message">Loading categories...</div>
+            ) : (
+              categories.map((category) => (
+                <div 
+                  key={category._id} 
+                  className="category-item"
+                  onClick={() => handleCategoryClick(category)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="category-image" style={{ backgroundImage: `url(${category.image})` }}>
+                    <div className="category-icon-overlay">{category.icon}</div>
+                  </div>
+                  <span>{category.name}</span>
                 </div>
-                <span>{category.name}</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <button className="scroll-button right" onClick={() => scrollServices('right', categoriesRef)}>
             <span>→</span>
@@ -467,13 +530,18 @@ const Home = () => {
 
       {/* Promotional Banners Section */}
       <section className="promotional-banners-section" ref={promotionalRef}>
-        {promotionalBanners.map((banner, index) => (
+        {promotionalBanners.map((banner) => (
           <div key={banner.id} className="promo-banner">
             <div className="promo-content">
               <span className="promo-title">{banner.title}</span>
               {banner.highlight && <h2 className="promo-highlight">{banner.highlight}</h2>}
               <p className="promo-description">{banner.description}</p>
-              <button className="promo-button">{banner.buttonText}</button>
+              <button 
+                className="promo-button" 
+                onClick={() => handlePromoBannerClick(banner)}
+              >
+                {banner.buttonText}
+              </button>
             </div>
             <div className="promo-image" style={{ backgroundImage: `url(${banner.image})` }}></div>
           </div>
@@ -484,7 +552,9 @@ const Home = () => {
       <section className="final-cta-section">
         <div className="cta-background"></div>
         <h2>Ready to find the perfect service provider?</h2>
-        <button className="cta-button">Get Started</button>
+        <button className="cta-button" onClick={() => navigate('/services')}>
+          Get Started
+        </button>
       </section>
 
       {/* Footer */}
