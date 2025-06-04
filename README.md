@@ -1,75 +1,38 @@
-# MERN Stack Item Manager Application
+# Migo Marketplace
 
-A simple web application for managing items using the MERN stack (MongoDB, Express, React, Node.js).
+Migo Marketplace is a full-featured online platform where buyers and sellers come together to list, discover, and manage items, services, and job postings. Whether you’re listing a household item, offering a specialized service, or recruiting for a new position, Migo provides an intuitive interface to manage your listings and keep track of interactions.
 
-## Project Structure
+- **Like Yelp + Google Maps + Marketplace:** Discover and review local businesses, explore map-based service listings, and manage direct transactions.
+- **Yellow Pages 2.0:** An AI-powered directory where you can search, filter, and connect with vendors, services, items, and job postings in your area.
 
-- `backend/`: Node.js and Express server
-- `frontend/`: React frontend application
+## What You Can Do
 
-## Features
-
-- Create, read, update, and delete items
-- Mark items as completed
-- RESTful API
+- **Search Nearby Services:** Interactive map and location filters help you find vendors for any need—restaurants, cleaners, event planners, and more.
+- **AskMigo AI Assistant:** Chat with our AI guide to get personalized recommendations (e.g., “Plan my party,” “Find a plumber now”) and curated vendor lists.
+- **Direct Vendor Contact:** Send messages, negotiate prices, and book services directly through our chat interface.
+- **Manage Listings:** Create, edit, and track your own service or item listings, set availability, upload images, and monitor responses in your dashboard.
+- **Reviews & Ratings:** Read community reviews, leave feedback, and build trust with star ratings and detailed comments.
 
 ## Getting Started
 
-### Prerequisites
+For detailed installation steps, environment configuration, and API documentation, please see **INFO.md** in the project root.
 
-- Node.js (v14+ recommended)
-- MongoDB (local or Atlas)
-- npm (v6+ recommended)
+[Open Technical Setup →](./INFO.md)
 
-### Installation
+## Live Demo
 
-1. Clone the repository
+A live demo is available at: https://demo.migo-marketplace.com  
+_(Coming soon — check back shortly!)_
 
-2. Install backend dependencies
+## Screenshots
 
-```
-cd backend
-npm install
-```
+![Home Page](./frontend/public/images/screenshot-home.png)
+![Listing Details](./frontend/public/images/screenshot-details.png)
 
-3. Install frontend dependencies
+## Contributing
 
-```
-cd frontend
-npm install
-```
+We welcome contributions! Please review our contribution guidelines in INFO.md before submitting a pull request.
 
-4. Set up your environment variables
-   Edit the `.env` file in the backend directory to configure your MongoDB connection string and other settings.
+## License
 
-### Running the application
-
-#### Backend
-
-```
-cd backend
-npm run dev
-```
-
-#### Frontend
-
-```
-cd frontend
-npm start
-```
-
-The frontend will be available at http://localhost:3000 and the backend API at http://localhost:5555.
-
-## API Endpoints
-
-- `GET /api/items` - Get all items
-- `GET /api/items/:id` - Get an item by ID
-- `POST /api/items` - Create a new item
-- `PUT /api/items/:id` - Update an item
-- `DELETE /api/items/:id` - Delete an item
-
-## Technology Stack
-
-- **Frontend**: React, React Router, Axios
-- **Backend**: Node.js, Express
-- **Database**: MongoDB with Mongoose ODM
+This project is licensed under the MIT License.
