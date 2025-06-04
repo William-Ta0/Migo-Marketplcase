@@ -16,7 +16,7 @@ const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
   (process.env.NODE_ENV === "production"
     ? "https://your-backend-url.com/api"
-    : "http://localhost:5001/api"); // Backend API running on port 5001 for development
+    : "http://localhost:5555/api"); // Backend API running on port 5555 for development
 const API_URL = `${API_BASE_URL}/users`;
 
 const AuthContext = createContext();
