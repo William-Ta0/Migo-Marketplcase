@@ -31,10 +31,14 @@ const santaClaraBounds = {
 };
 
 function MapPage() {
-  const [center] = useState(defaultCenter);
+  const [center, setCenter] = useState(defaultCenter); // Allow updating map center
   const [searchResults, setSearchResults] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [mapInstance, setMapInstance] = useState(null); // Store map instance
+  const [selectedType, setSelectedType] = useState("caterer"); // Default type
+  const [currentPage, setCurrentPage] = useState(1); // Track current page
+
+  const resultsPerPage = 5; // Number of results per page
 
   const handleSearch = async () => {
     try {
@@ -47,7 +51,7 @@ function MapPage() {
       const service = new window.google.maps.places.PlacesService(mapInstance);
 
       const request = {
-        query: "businesses near Santa Clara", // Updated to use a valid query string
+        query: `${selectedType} near Santa Clara`, // Use selected type in query
         fields: ["name", "geometry", "place_id", "vicinity"],
       };
 
@@ -59,6 +63,7 @@ function MapPage() {
 
         if (status === window.google.maps.places.PlacesServiceStatus.OK) {
           setSearchResults(results);
+          setCurrentPage(1); // Reset to the first page
         } else {
           console.error("TextSearch failed with status:", status);
           alert("No businesses found. Please try again.");
@@ -70,14 +75,20 @@ function MapPage() {
     }
   };
 
+  const handleResultClick = (place) => {
+    setCenter(place.geometry.location); // Update map center to the clicked place
+    setSelectedPlace(place); // Highlight the selected place
+  };
+
+  const totalPages = Math.ceil(searchResults.length / resultsPerPage);
+  const paginatedResults = searchResults.slice(
+    (currentPage - 1) * resultsPerPage,
+    currentPage * resultsPerPage
+  );
+
   return (
     <div>
       <h1>Map Page</h1>
-      <div style={{ marginBottom: "20px" }}>
-        <button onClick={handleSearch} style={{ padding: "10px" }}>
-          Search Businesses
-        </button>
-      </div>
       <LoadScript
         googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
         libraries={["places"]}
@@ -115,6 +126,64 @@ function MapPage() {
           )}
         </GoogleMap>
       </LoadScript>
+      <div style={{ marginBottom: "20px" }}>
+        <label htmlFor="business-type">Select Business Type:</label>
+        <select
+          id="business-type"
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          style={{ marginLeft: "10px", padding: "5px" }}
+        >
+          <option value="caterer">Caterer</option>
+          <option value="baker">Baker</option>
+          <option value="painter">Painter</option>
+          <option value="photographer">Photographer</option>
+          <option value="dj">DJ</option>
+          <option value="mechanic">Mechanic</option>
+          <option value="electrician">Electrician</option>
+        </select>
+        <button
+          onClick={handleSearch}
+          style={{ marginLeft: "10px", padding: "10px" }}
+        >
+          Search Businesses
+        </button>
+      </div>
+      <div style={{ marginBottom: "20px" }}>
+        <h2>Search Results</h2>
+        <ul style={{ listStyleType: "none", padding: 0 }}>
+          {paginatedResults.map((place, index) => (
+            <li
+              key={place.place_id}
+              style={{ cursor: "pointer", marginBottom: "10px" }}
+              onClick={() => handleResultClick(place)}
+            >
+              <strong>
+                {(currentPage - 1) * resultsPerPage + index + 1}. {place.name}
+              </strong>
+              <p>{place.vicinity}</p>
+            </li>
+          ))}
+        </ul>
+        <div style={{ marginTop: "10px" }}>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              style={{
+                marginRight: "5px",
+                padding: "5px",
+                backgroundColor: currentPage === i + 1 ? "#007BFF" : "#FFF",
+                color: currentPage === i + 1 ? "#FFF" : "#000",
+                border: "1px solid #007BFF",
+                cursor: "pointer",
+              }}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
