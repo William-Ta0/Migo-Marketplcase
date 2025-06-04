@@ -2,6 +2,135 @@ const Service = require('../models/Service');
 const ServiceCategory = require('../models/ServiceCategory');
 const User = require('../models/User');
 
+// Create a new service
+const createService = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      shortDescription,
+      category,
+      subcategory,
+      pricing,
+      location,
+      deliveryTime,
+      requirements,
+      deliverables,
+      tags,
+      features,
+      isActive
+    } = req.body;
+
+    // Get vendor ID from authenticated user
+    const vendorId = req.user?.uid || req.user?.id;
+    if (!vendorId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    // Find vendor in database
+    const vendor = await User.findOne({ firebaseUid: vendorId });
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vendor not found'
+      });
+    }
+
+    // Find category by name
+    let categoryDoc = await ServiceCategory.findOne({ name: category });
+    if (!categoryDoc) {
+      // Create category if it doesn't exist
+      categoryDoc = new ServiceCategory({
+        name: category,
+        slug: category.toLowerCase().replace(/\s+/g, '-'),
+        description: `${category} services and solutions`,
+        icon: '🔧', // Default icon for new categories
+        isActive: true
+      });
+      await categoryDoc.save();
+    }
+
+    // Create service
+    const service = new Service({
+      title: title.trim(),
+      description: description.trim(),
+      shortDescription: shortDescription?.trim() || description.trim().substring(0, 150),
+      vendor: vendor._id,
+      category: {
+        id: categoryDoc._id,
+        name: categoryDoc.name,
+        slug: categoryDoc.slug
+      },
+      subcategory: {
+        name: subcategory || category,
+        description: subcategory ? `${subcategory} services` : `${category} services`
+      },
+      pricing: {
+        type: pricing?.type || 'fixed',
+        amount: pricing?.amount ? parseFloat(pricing.amount) : undefined,
+        currency: pricing?.currency || 'USD',
+        packages: pricing?.packages || []
+      },
+      location: {
+        type: location?.type || 'remote',
+        address: location?.address ? {
+          city: location.address,
+          state: '',
+          country: 'USA'
+        } : undefined,
+        serviceArea: {
+          radius: 25,
+          cities: location?.address ? [location.address] : [],
+          states: [],
+          countries: ['USA']
+        }
+      },
+      estimatedDuration: {
+        min: deliveryTime ? parseInt(deliveryTime) : 1,
+        max: deliveryTime ? parseInt(deliveryTime) + 2 : 3,
+        unit: 'days'
+      },
+      requirements: requirements || [],
+      deliverables: deliverables || [],
+      tags: tags || [],
+      features: features || [],
+      isActive: isActive !== false,
+      isPromoted: false,
+      stats: {
+        views: 0,
+        inquiries: 0,
+        bookings: 0,
+        rating: {
+          average: 0,
+          count: 0
+        }
+      }
+    });
+
+    await service.save();
+
+    // Populate vendor info for response
+    await service.populate('vendor', 'name email avatar');
+
+    res.status(201).json({
+      success: true,
+      message: 'Service created successfully',
+      data: service
+    });
+
+  } catch (error) {
+    console.error('Error creating service:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create service',
+      error: error.message
+    });
+  }
+};
+
 // Get all services with advanced filtering and search
 const getServices = async (req, res) => {
   try {
@@ -118,8 +247,8 @@ const getServices = async (req, res) => {
     const formattedServices = services.map(service => ({
       ...service,
       primaryImage: service.images?.find(img => img.isPrimary) || service.images?.[0] || null,
-      displayRating: Math.round(service.stats.rating.average * 10) / 10,
-      reviewCount: service.stats.rating.count
+      displayRating: Math.round((service.stats?.rating?.average || 0) * 10) / 10,
+      reviewCount: service.stats?.rating?.count || 0
     }));
 
     res.json({
@@ -183,8 +312,8 @@ const getServiceById = async (req, res) => {
     const formattedService = {
       ...service,
       primaryImage: service.images?.find(img => img.isPrimary) || service.images?.[0] || null,
-      displayRating: Math.round(service.stats.rating.average * 10) / 10,
-      reviewCount: service.stats.rating.count,
+      displayRating: Math.round((service.stats?.rating?.average || 0) * 10) / 10,
+      reviewCount: service.stats?.rating?.count || 0,
       relatedServices: relatedServices.map(related => ({
         _id: related._id,
         title: related.title,
@@ -192,7 +321,7 @@ const getServiceById = async (req, res) => {
         pricing: related.pricing,
         vendor: related.vendor,
         primaryImage: related.images?.find(img => img.isPrimary) || related.images?.[0] || null,
-        displayRating: Math.round(related.stats.rating.average * 10) / 10
+        displayRating: Math.round((related.stats?.rating?.average || 0) * 10) / 10
       }))
     };
 
@@ -262,7 +391,7 @@ const searchServices = async (req, res) => {
       pricing: service.pricing,
       vendor: service.vendor,
       image: service.images?.find(img => img.isPrimary) || service.images?.[0] || null,
-      rating: Math.round(service.stats.rating.average * 10) / 10
+      rating: Math.round((service.stats?.rating?.average || 0) * 10) / 10
     }));
 
     res.json({
@@ -330,7 +459,7 @@ const getServicesByCategory = async (req, res) => {
         services: services.map(service => ({
           ...service,
           primaryImage: service.images?.find(img => img.isPrimary) || service.images?.[0] || null,
-          displayRating: Math.round(service.stats.rating.average * 10) / 10
+          displayRating: Math.round((service.stats?.rating?.average || 0) * 10) / 10
         }))
       },
       pagination: {
@@ -388,7 +517,7 @@ const getFeaturedServices = async (req, res) => {
     const formattedServices = services.map(service => ({
       ...service,
       primaryImage: service.images?.find(img => img.isPrimary) || service.images?.[0] || null,
-      displayRating: Math.round(service.stats.rating.average * 10) / 10,
+      displayRating: Math.round((service.stats?.rating?.average || 0) * 10) / 10,
       isFeatured: service.isPromoted
     }));
 
@@ -468,6 +597,7 @@ const getServiceStats = async (req, res) => {
 };
 
 module.exports = {
+  createService,
   getServices,
   getServiceById,
   searchServices,

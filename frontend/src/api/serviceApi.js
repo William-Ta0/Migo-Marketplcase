@@ -1,9 +1,24 @@
 import axios from 'axios';
+import { auth } from '../firebase/config';
 
 // Use environment-specific API URLs
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? process.env.REACT_APP_API_URL || 'https://your-backend-url.com/api/services'
+const API_URL = process.env.REACT_APP_API_URL 
+  ? `${process.env.REACT_APP_API_URL}/services`
   : 'http://localhost:5001/api/services';
+
+// Helper function to get auth headers
+const getAuthHeaders = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('No authenticated user found');
+  }
+  
+  const token = await user.getIdToken();
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+};
 
 // Get all services with filtering
 export const getServices = async (params = {}) => {
@@ -74,6 +89,59 @@ export const getServiceStats = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching service stats:', error);
+    throw error;
+  }
+};
+
+// Create a new service
+export const createService = async (serviceData) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.post(API_URL, serviceData, {
+      headers
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating service:', error);
+    throw error;
+  }
+};
+
+// Update a service
+export const updateService = async (id, serviceData) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.put(`${API_URL}/${id}`, serviceData, {
+      headers
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating service ${id}:`, error);
+    throw error;
+  }
+};
+
+// Delete a service
+export const deleteService = async (id) => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.delete(`${API_URL}/${id}`, {
+      headers
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting service ${id}:`, error);
+    throw error;
+  }
+};
+
+// Get vendor's services
+export const getVendorServices = async (vendorId) => {
+  try {
+    const response = await axios.get(`${API_URL}/vendor/${vendorId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching vendor services ${vendorId}:`, error);
     throw error;
   }
 }; 

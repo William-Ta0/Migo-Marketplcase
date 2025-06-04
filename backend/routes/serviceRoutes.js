@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  createService,
   getServices,
   getServiceById,
   searchServices,
@@ -8,6 +9,10 @@ const {
   getFeaturedServices,
   getServiceStats
 } = require('../controllers/serviceController');
+const { verifyToken } = require('../middleware/auth');
+
+// Protected routes - require authentication
+router.post('/', verifyToken, createService);
 
 // Public routes - no authentication required
 router.get('/', getServices);

@@ -26,7 +26,8 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [userRole, setUserRole] = useState(null);
+  const [userRole, setCurrentUserRole] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Register user with Firebase and save to MongoDB
@@ -44,7 +45,7 @@ export const AuthProvider = ({ children }) => {
       const idToken = await user.getIdToken();
 
       // Create user document in MongoDB
-      await axios.post(
+      const response = await axios.post(
         `${API_URL}/register`,
         {
           name,
@@ -60,6 +61,10 @@ export const AuthProvider = ({ children }) => {
         }
       );
       console.log('User data saved to MongoDB for:', user.uid); // Added console log
+
+      // Set user profile
+      setUserProfile(response.data);
+      setCurrentUserRole(response.data.role);
 
       return user;
     } catch (error) {
@@ -94,15 +99,17 @@ export const AuthProvider = ({ children }) => {
       
       try {
         // Try to get the user profile
-        await axios.get(`${API_URL}/profile`, {
+        const profileResponse = await axios.get(`${API_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
         });
+        setUserProfile(profileResponse.data);
+        setCurrentUserRole(profileResponse.data.role);
       } catch (error) {
         // If user doesn\'t exist in MongoDB, create them
         if (error.response && error.response.status === 404) {
-          await axios.post(
+          const registerResponse = await axios.post(
             `${API_URL}/register`,
             {
               name: user.displayName || 'Google User',
@@ -118,9 +125,12 @@ export const AuthProvider = ({ children }) => {
             }
           );
           console.log('Google user data saved to MongoDB for:', user.uid); // Added console log
+          setUserProfile(registerResponse.data);
+          setCurrentUserRole(registerResponse.data.role);
         } else {
           console.error('Error during Google login (profile check/creation):', error); // Added console log
-          throw error;
+          // Don't throw error here - user is still authenticated with Firebase
+          console.warn('Using Firebase profile without backend sync');
         }
       }
       
@@ -137,7 +147,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const user = auth.currentUser; // Get user before signing out for logging
       await signOut(auth);
-      setUserRole(null);
+      setCurrentUserRole(null);
+      setUserProfile(null);
       console.log('User logged out:', user ? user.uid : 'No user was signed in'); // Added console log
     } catch (error) {
       console.error('Error during logout:', error); // Added console log
@@ -148,7 +159,7 @@ export const AuthProvider = ({ children }) => {
   // Get user's role from MongoDB
   const getUserRole = async (uid) => {
     try {
-      const user = await auth.currentUser;
+      const user = auth.currentUser;
       if (!user) return null;
 
       const idToken = await user.getIdToken();
@@ -161,29 +172,73 @@ export const AuthProvider = ({ children }) => {
       return response.data.role;
     } catch (error) {
       console.error('Error fetching user role:', error);
+      // Don't log user out - just return null role
       return null;
     }
   };
 
-  // Update user's role in MongoDB
-  const updateUserRole = async (uid, role) => {
+  // Ensure user exists in database and update role
+  const setUserRole = async (role) => {
     try {
-      const user = await auth.currentUser;
+      const user = auth.currentUser;
       if (!user) throw new Error('No user logged in');
 
       const idToken = await user.getIdToken();
-      await axios.put(
-        `${API_URL}/role`,
-        { role },
-        {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
+      
+      // First, try to update the role (for existing users)
+      try {
+        await axios.put(
+          `${API_URL}/role`,
+          { role },
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
+        console.log('Role updated successfully for existing user:', user.uid, 'to role:', role);
+      } catch (error) {
+        // If user doesn't exist (404), create them first
+        if (error.response && error.response.status === 404) {
+          console.log('User not found in database, creating user:', user.uid);
+          
+          // Create user in database first
+          await axios.post(
+            `${API_URL}/register`,
+            {
+              name: user.displayName || 'User',
+              email: user.email,
+              firebaseUid: user.uid,
+              authProvider: 'email', // Default, could be improved
+              role: role,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+              },
+            }
+          );
+          console.log('User created successfully in database:', user.uid, 'with role:', role);
+        } else {
+          throw error; // Re-throw other errors
         }
-      );
-      setUserRole(role);
+      }
+      
+      // Update local state
+      setCurrentUserRole(role);
+      if (userProfile) {
+        setUserProfile({ ...userProfile, role });
+      }
+      
+      // Refresh user profile to get latest data
+      const updatedProfile = await getUserProfile();
+      if (updatedProfile) {
+        setUserProfile(updatedProfile);
+        setCurrentUserRole(updatedProfile.role);
+      }
+      
     } catch (error) {
-      console.error('Error updating user role:', error);
+      console.error('Error setting user role:', error);
       throw error;
     }
   };
@@ -191,7 +246,7 @@ export const AuthProvider = ({ children }) => {
   // Get user profile from MongoDB
   const getUserProfile = async () => {
     try {
-      const user = await auth.currentUser;
+      const user = auth.currentUser;
       if (!user) return null;
 
       const idToken = await user.getIdToken();
@@ -204,14 +259,15 @@ export const AuthProvider = ({ children }) => {
       return response.data;
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      throw error;
+      // Don't throw error - return null and let app continue
+      return null;
     }
   };
 
   // Update user profile in MongoDB
   const updateUserProfile = async (profileData) => {
     try {
-      const user = await auth.currentUser;
+      const user = auth.currentUser;
       if (!user) throw new Error('No user logged in');
 
       const idToken = await user.getIdToken();
@@ -225,6 +281,12 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
+      // Update local userProfile state
+      setUserProfile(response.data);
+      if (response.data.role) {
+        setCurrentUserRole(response.data.role);
+      }
+
       return response.data;
     } catch (error) {
       console.error('Error updating user profile:', error);
@@ -235,7 +297,7 @@ export const AuthProvider = ({ children }) => {
   // Upload user avatar
   const uploadAvatar = async (avatarFile) => {
     try {
-      const user = await auth.currentUser;
+      const user = auth.currentUser;
       if (!user) throw new Error('No user logged in');
 
       const formData = new FormData();
@@ -252,6 +314,11 @@ export const AuthProvider = ({ children }) => {
           },
         }
       );
+
+      // Update local userProfile state
+      if (userProfile) {
+        setUserProfile({ ...userProfile, avatar: response.data.avatar });
+      }
 
       return response.data;
     } catch (error) {
@@ -280,7 +347,8 @@ export const AuthProvider = ({ children }) => {
       
       // Clear local state
       setCurrentUser(null);
-      setUserRole(null);
+      setCurrentUserRole(null);
+      setUserProfile(null);
     } catch (error) {
       console.error('Error deleting account:', error);
       throw error;
@@ -293,13 +361,39 @@ export const AuthProvider = ({ children }) => {
       if (user) {
         console.log('Auth state changed: User signed in -', user.uid, user.email); // Added console log
         setCurrentUser(user);
-        const role = await getUserRole(user.uid);
-        setUserRole(role);
-        console.log('User role fetched:', role, 'for user:', user.uid); // Added console log
+        
+        // Try to get profile from backend, but don't fail if backend is down
+        try {
+          const profile = await getUserProfile();
+          if (profile) {
+            setUserProfile(profile);
+            setCurrentUserRole(profile.role);
+            console.log('User profile fetched:', profile.role, 'for user:', user.uid);
+          } else {
+            // Fallback to basic profile from Firebase
+            setUserProfile({
+              name: user.displayName || 'User',
+              email: user.email,
+              role: null,
+              firebaseUid: user.uid
+            });
+            setCurrentUserRole(null);
+          }
+        } catch (error) {
+          console.warn('Backend not available, using fallback profile');
+          setUserProfile({
+            name: user.displayName || 'User',
+            email: user.email,
+            role: null,
+            firebaseUid: user.uid
+          });
+          setCurrentUserRole(null);
+        }
       } else {
         console.log('Auth state changed: User signed out'); // Added console log
         setCurrentUser(null);
-        setUserRole(null);
+        setCurrentUserRole(null);
+        setUserProfile(null);
       }
       setLoading(false);
     });
@@ -310,7 +404,8 @@ export const AuthProvider = ({ children }) => {
   const value = {
     currentUser,
     userRole,
-    setUserRole: (role) => updateUserRole(currentUser?.uid, role),
+    userProfile,
+    setUserRole,
     register,
     login,
     googleLogin,
@@ -319,7 +414,9 @@ export const AuthProvider = ({ children }) => {
     getUserProfile,
     updateUserProfile,
     uploadAvatar,
-    deleteAccount
+    deleteAccount,
+    // Alias for backward compatibility
+    user: currentUser
   };
 
   return (

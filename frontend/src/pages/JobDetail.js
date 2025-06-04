@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getJobById, updateJobStatus, addJobMessage, uploadJobFile } from '../api/jobApi';
+import { getJobById, updateJobStatus, addJobMessage } from '../api/jobApi';
 import { useAuth } from '../context/AuthContext';
 import JobStatusManager from '../components/JobStatusManager';
 import JobMessaging from '../components/JobMessaging';
-import JobFiles from '../components/JobFiles';
+import JobTimeline from '../components/JobTimeline';
 import '../styles/JobDetail.css';
 
 const JobDetail = () => {
@@ -70,21 +70,6 @@ const JobDetail = () => {
     }
   };
 
-  const handleFileUpload = async (file) => {
-    try {
-      const response = await uploadJobFile(id, file);
-      if (response.success) {
-        // Refresh job to get updated files
-        await fetchJobDetail();
-      } else {
-        alert(response.message || 'Failed to upload file');
-      }
-    } catch (err) {
-      alert('Failed to upload file');
-      console.error('Error uploading file:', err);
-    }
-  };
-
   const getStatusColor = (status) => {
     const colors = {
       'pending': '#f59e0b',
@@ -117,6 +102,34 @@ const JobDetail = () => {
       'closed': 'Closed'
     };
     return statusTexts[status] || status;
+  };
+
+  const getProgressPercentage = (currentStatus) => {
+    const statusOrder = ['pending', 'confirmed', 'in_progress', 'completed', 'delivered'];
+    const currentIndex = statusOrder.indexOf(currentStatus);
+    
+    // Debug logging
+    console.log('Current status:', currentStatus, 'Index:', currentIndex);
+    
+    // If status not found or is the first status, return 0
+    if (currentIndex <= 0) return 0;
+    
+    // Calculate percentage based on completed steps
+    // We use currentIndex instead of currentIndex + 1 to show progress to current step
+    const percentage = Math.min((currentIndex / (statusOrder.length - 1)) * 100, 100);
+    console.log('Progress percentage:', percentage);
+    return percentage;
+  };
+
+  const getStepStatusText = (status) => {
+    const stepTexts = {
+      'pending': 'Pending',
+      'confirmed': 'Confirmed', 
+      'in_progress': 'In Progress',
+      'completed': 'Completed',
+      'delivered': 'Delivered'
+    };
+    return stepTexts[status] || status;
   };
 
   const formatDate = (dateString) => {
@@ -174,35 +187,11 @@ const JobDetail = () => {
               <h1>{job.title}</h1>
               <p className="job-id">Job #{job.jobNumber || job._id.slice(-8).toUpperCase()}</p>
             </div>
-            <div className="job-status-badge" style={{ backgroundColor: getStatusColor(job.status) }}>
-              {getStatusText(job.status)}
-            </div>
           </div>
           <div className="job-header-actions">
             <button onClick={() => navigate('/jobs')} className="btn btn-secondary">
               ← Back to Jobs
             </button>
-          </div>
-        </div>
-
-        {/* Status Progress */}
-        <div className="status-progress">
-          <div className="progress-bar">
-            {['pending', 'confirmed', 'in_progress', 'completed', 'delivered'].map((status, index) => (
-              <div
-                key={status}
-                className={`progress-step ${
-                  ['pending', 'confirmed', 'in_progress', 'completed', 'delivered'].indexOf(job.status) >= index
-                    ? 'active'
-                    : ''
-                }`}
-              >
-                <div className="step-circle">
-                  {['pending', 'confirmed', 'in_progress', 'completed', 'delivered'].indexOf(job.status) > index ? '✓' : index + 1}
-                </div>
-                <span className="step-label">{getStatusText(status)}</span>
-              </div>
-            ))}
           </div>
         </div>
 
@@ -227,10 +216,10 @@ const JobDetail = () => {
             Messages ({job.messages?.length || 0})
           </button>
           <button
-            className={`tab ${activeTab === 'files' ? 'active' : ''}`}
-            onClick={() => setActiveTab('files')}
+            className={`tab ${activeTab === 'timeline' ? 'active' : ''}`}
+            onClick={() => setActiveTab('timeline')}
           >
-            Files & Attachments
+            Timeline
           </button>
         </div>
 
@@ -249,7 +238,7 @@ const JobDetail = () => {
                     </div>
                     <div className="info-item">
                       <label>Category:</label>
-                      <span>{job.service?.category}</span>
+                      <span>{job.service?.category?.name || job.service?.category || 'Uncategorized'}</span>
                     </div>
                     <div className="info-item">
                       <label>Description:</label>
@@ -277,9 +266,6 @@ const JobDetail = () => {
                     <div className="party-info">
                       <label>Customer:</label>
                       <div className="party-details">
-                        {job.customer.avatar && (
-                          <img src={job.customer.avatar} alt={job.customer.name} className="avatar" />
-                        )}
                         <div>
                           <div className="party-name">{job.customer.name}</div>
                           <div className="party-email">{job.customer.email}</div>
@@ -289,9 +275,6 @@ const JobDetail = () => {
                     <div className="party-info">
                       <label>Vendor:</label>
                       <div className="party-details">
-                        {job.vendor.avatar && (
-                          <img src={job.vendor.avatar} alt={job.vendor.name} className="avatar" />
-                        )}
                         <div>
                           <div className="party-name">{job.vendor.name}</div>
                           <div className="party-email">{job.vendor.email}</div>
@@ -412,12 +395,12 @@ const JobDetail = () => {
             />
           )}
 
-          {activeTab === 'files' && (
-            <JobFiles
+          {activeTab === 'timeline' && (
+            <JobTimeline
+              jobId={job._id}
               job={job}
               isVendor={isVendor}
               isCustomer={isCustomer}
-              onFileUpload={handleFileUpload}
             />
           )}
         </div>
