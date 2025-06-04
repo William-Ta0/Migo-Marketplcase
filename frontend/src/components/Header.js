@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const { currentUser, logout, userProfile } = useAuth();
@@ -9,9 +9,9 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
-      console.error('Failed to log out', error);
+      console.error("Failed to log out", error);
     }
   };
 
@@ -21,16 +21,23 @@ const Header = () => {
         <Link to="/" className="logo">
           <h1>Migo</h1>
         </Link>
-        
+
         <nav className="nav-menu">
           {currentUser ? (
             <>
               {/* Public Browse Links - Available to all authenticated users */}
-              <Link to="/services" className="nav-link">Browse Services</Link>
-              <Link to="/categories" className="nav-link">Categories</Link>
-              
+              <Link to="/services" className="nav-link">
+                Browse Services
+              </Link>
+              <Link to="/categories" className="nav-link">
+                Categories
+              </Link>
+              <Link to="/map" className="nav-link">
+                Map
+              </Link>
+
               {/* Customer Navigation */}
-              {(!userProfile?.role || userProfile?.role === 'customer') && (
+              {(!userProfile?.role || userProfile?.role === "customer") && (
                 <>
                   <Link to="/my-jobs" className="nav-link customer-nav">
                     <span className="nav-icon">📋</span>
@@ -38,9 +45,9 @@ const Header = () => {
                   </Link>
                 </>
               )}
-              
+
               {/* Vendor Navigation */}
-              {userProfile?.role === 'vendor' && (
+              {userProfile?.role === "vendor" && (
                 <>
                   <Link to="/jobs" className="nav-link">
                     <span className="nav-icon">💼</span>
@@ -52,13 +59,13 @@ const Header = () => {
                   </Link>
                 </>
               )}
-              
+
               {/* Common Authenticated Navigation */}
               <Link to="/profile" className="nav-link">
                 <span className="nav-icon">👤</span>
                 Profile
               </Link>
-              
+
               <button onClick={handleLogout} className="logout-btn">
                 <span className="nav-icon">🚪</span>
                 Logout
@@ -67,8 +74,12 @@ const Header = () => {
           ) : (
             /* Non-authenticated Navigation */
             <div className="auth-links">
-              <Link to="/login" className="nav-link">Login</Link>
-              <Link to="/register" className="nav-link register-link">Register</Link>
+              <Link to="/login" className="nav-link">
+                Login
+              </Link>
+              <Link to="/register" className="nav-link register-link">
+                Register
+              </Link>
             </div>
           )}
         </nav>
@@ -77,4 +88,4 @@ const Header = () => {
   );
 };
 
-export default Header; 
+export default Header;

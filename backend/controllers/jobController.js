@@ -1,18 +1,21 @@
-const Job = require('../models/Job');
-const Service = require('../models/Service');
-const User = require('../models/User');
-const multer = require('multer');
-const path = require('path');
+const Job = require("../models/Job");
+const Service = require("../models/Service");
+const User = require("../models/User");
+const multer = require("multer");
+const path = require("path");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/jobs/');
+    cb(null, "uploads/jobs/");
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+    );
+  },
 });
 
 const upload = multer({
@@ -22,15 +25,17 @@ const upload = multer({
   },
   fileFilter: function (req, file, cb) {
     const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|txt/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
     const mimetype = allowedTypes.test(file.mimetype);
 
     if (mimetype && extname) {
       return cb(null, true);
     } else {
-      cb(new Error('Only images and documents are allowed'));
+      cb(new Error("Only images and documents are allowed"));
     }
-  }
+  },
 });
 
 // @desc    Create a new job/booking
@@ -45,17 +50,17 @@ const createJob = async (req, res) => {
       preferredDate,
       urgency,
       selectedPackage,
-      location
+      location,
     } = req.body;
 
     const customerId = req.user.uid;
 
     // Validate the service exists and is active
-    const service = await Service.findById(serviceId).populate('vendor');
+    const service = await Service.findById(serviceId).populate("vendor");
     if (!service || !service.isActive) {
       return res.status(404).json({
         success: false,
-        message: 'Service not found or inactive'
+        message: "Service not found or inactive",
       });
     }
 
@@ -63,7 +68,7 @@ const createJob = async (req, res) => {
     if (service.vendor._id.toString() !== vendorId) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid vendor for this service'
+        message: "Invalid vendor for this service",
       });
     }
 
@@ -72,22 +77,24 @@ const createJob = async (req, res) => {
     if (!customer) {
       return res.status(404).json({
         success: false,
-        message: 'Customer not found'
+        message: "Customer not found",
       });
     }
 
     // Calculate pricing
     let pricing = {
       type: service.pricing.type,
-      currency: service.pricing.currency || 'USD'
+      currency: service.pricing.currency || "USD",
     };
 
     if (selectedPackage) {
-      const packageInfo = service.pricing.packages.find(pkg => pkg.name === selectedPackage.name);
+      const packageInfo = service.pricing.packages.find(
+        (pkg) => pkg.name === selectedPackage.name
+      );
       if (!packageInfo) {
         return res.status(400).json({
           success: false,
-          message: 'Selected package not found'
+          message: "Selected package not found",
         });
       }
       pricing.amount = packageInfo.price;
@@ -114,50 +121,53 @@ const createJob = async (req, res) => {
         address: location?.address || service.location.address,
         specialInstructions: location?.specialInstructions,
       },
-      urgency: urgency || 'normal',
+      urgency: urgency || "normal",
       requirements: service.requirements || [],
       deliverables: service.deliverables || [],
-      messages: [{
-        sender: customer._id,
-        message: message,
-        type: 'message'
-      }],
+      messages: [
+        {
+          sender: customer._id,
+          message: message,
+          type: "message",
+        },
+      ],
       tracking: {
         viewedByCustomer: true,
         lastViewedByCustomer: new Date(),
-        statusHistory: [{
-          status: 'pending',
-          timestamp: new Date(),
-          changedBy: customer._id,
-        }]
-      }
+        statusHistory: [
+          {
+            status: "pending",
+            timestamp: new Date(),
+            changedBy: customer._id,
+          },
+        ],
+      },
     });
 
     await job.save();
 
     // Update service statistics
     await Service.findByIdAndUpdate(serviceId, {
-      $inc: { 'stats.inquiries': 1 }
+      $inc: { "stats.inquiries": 1 },
     });
 
     // Populate the created job for response
     const populatedJob = await Job.findById(job._id)
-      .populate('service', 'title images')
-      .populate('vendor', 'name email avatar')
-      .populate('customer', 'name email avatar');
+      .populate("service", "title images")
+      .populate("vendor", "name email avatar")
+      .populate("customer", "name email avatar");
 
     res.status(201).json({
       success: true,
-      message: 'Booking request sent successfully',
-      data: populatedJob
+      message: "Booking request sent successfully",
+      data: populatedJob,
     });
-
   } catch (error) {
-    console.error('Error creating job:', error);
+    console.error("Error creating job:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create booking',
-      error: error.message
+      message: "Failed to create booking",
+      error: error.message,
     });
   }
 };
@@ -168,13 +178,13 @@ const createJob = async (req, res) => {
 const getJobs = async (req, res) => {
   try {
     const userId = req.user.uid;
-    const { 
-      status, 
-      role = 'customer', 
-      page = 1, 
+    const {
+      status,
+      role = "customer",
+      page = 1,
       limit = 10,
-      sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortBy = "createdAt",
+      sortOrder = "desc",
     } = req.query;
 
     // Find user
@@ -182,15 +192,15 @@ const getJobs = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     // Build query based on role
     let query = {};
-    if (role === 'customer') {
+    if (role === "customer") {
       query.customer = user._id;
-    } else if (role === 'vendor') {
+    } else if (role === "vendor") {
       query.vendor = user._id;
     } else {
       // For admin, return all jobs (implement admin check here)
@@ -198,9 +208,9 @@ const getJobs = async (req, res) => {
     }
 
     // Add status filter if provided
-    if (status && status !== 'all') {
-      if (status.includes(',')) {
-        query.status = { $in: status.split(',') };
+    if (status && status !== "all") {
+      if (status.includes(",")) {
+        query.status = { $in: status.split(",") };
       } else {
         query.status = status;
       }
@@ -213,13 +223,13 @@ const getJobs = async (req, res) => {
 
     // Sorting
     const sortOption = {};
-    sortOption[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    sortOption[sortBy] = sortOrder === "desc" ? -1 : 1;
 
     // Execute query
     const jobs = await Job.find(query)
-      .populate('service', 'title images category')
-      .populate('vendor', 'name email avatar address')
-      .populate('customer', 'name email avatar address')
+      .populate("service", "title images category")
+      .populate("vendor", "name email avatar address")
+      .populate("customer", "name email avatar address")
       .sort(sortOption)
       .skip(skip)
       .limit(limitNum)
@@ -229,12 +239,12 @@ const getJobs = async (req, res) => {
     const total = await Job.countDocuments(query);
 
     // Update last viewed timestamp
-    if (role === 'vendor') {
+    if (role === "vendor") {
       await Job.updateMany(
-        { ...query, 'tracking.viewedByVendor': false },
-        { 
-          'tracking.viewedByVendor': true,
-          'tracking.lastViewedByVendor': new Date()
+        { ...query, "tracking.viewedByVendor": false },
+        {
+          "tracking.viewedByVendor": true,
+          "tracking.lastViewedByVendor": new Date(),
         }
       );
     }
@@ -246,16 +256,15 @@ const getJobs = async (req, res) => {
         current: pageNum,
         pages: Math.ceil(total / limitNum),
         total,
-        limit: limitNum
-      }
+        limit: limitNum,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching jobs:', error);
+    console.error("Error fetching jobs:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch jobs',
-      error: error.message
+      message: "Failed to fetch jobs",
+      error: error.message,
     });
   }
 };
@@ -273,43 +282,45 @@ const getJobById = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     // Find job and populate related data
     const job = await Job.findById(id)
+
       .populate('service', 'title description images category pricing location')
       .populate('vendor', 'name email avatar address bio firebaseUid')
       .populate('customer', 'name email avatar address firebaseUid')
       .populate('messages.sender', 'name avatar');
 
+
     if (!job) {
       return res.status(404).json({
         success: false,
-        message: 'Job not found'
+        message: "Job not found",
       });
     }
 
     // Check if user has access to this job
     const isCustomer = job.customer._id.toString() === user._id.toString();
     const isVendor = job.vendor._id.toString() === user._id.toString();
-    
+
     if (!isCustomer && !isVendor) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: "Access denied",
       });
     }
 
     // Update view tracking
     const updateFields = {};
     if (isVendor) {
-      updateFields['tracking.viewedByVendor'] = true;
-      updateFields['tracking.lastViewedByVendor'] = new Date();
+      updateFields["tracking.viewedByVendor"] = true;
+      updateFields["tracking.lastViewedByVendor"] = new Date();
     } else if (isCustomer) {
-      updateFields['tracking.viewedByCustomer'] = true;
-      updateFields['tracking.lastViewedByCustomer'] = new Date();
+      updateFields["tracking.viewedByCustomer"] = true;
+      updateFields["tracking.lastViewedByCustomer"] = new Date();
     }
 
     if (Object.keys(updateFields).length > 0) {
@@ -318,15 +329,14 @@ const getJobById = async (req, res) => {
 
     res.json({
       success: true,
-      data: job
+      data: job,
     });
-
   } catch (error) {
-    console.error('Error fetching job:', error);
+    console.error("Error fetching job:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch job details',
-      error: error.message
+      message: "Failed to fetch job details",
+      error: error.message,
     });
   }
 };
@@ -361,19 +371,19 @@ const updateJobStatus = async (req, res) => {
       console.log('❌ User not found for Firebase UID:', userId);
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     console.log('✅ User found:', user.name, user.email);
 
     // Find job
-    const job = await Job.findById(id).populate('vendor customer service');
+    const job = await Job.findById(id).populate("vendor customer service");
     if (!job) {
       console.log('❌ Job not found for ID:', id);
       return res.status(404).json({
         success: false,
-        message: 'Job not found'
+        message: "Job not found",
       });
     }
 
@@ -382,6 +392,7 @@ const updateJobStatus = async (req, res) => {
     // Check permissions
     const isCustomer = job.customer._id.toString() === user._id.toString();
     const isVendor = job.vendor._id.toString() === user._id.toString();
+
     
     console.log('🔍 Permission check:', {
       isCustomer,
@@ -391,16 +402,18 @@ const updateJobStatus = async (req, res) => {
       userId: user._id.toString()
     });
     
+
     if (!isCustomer && !isVendor) {
       console.log('❌ Access denied - user not customer or vendor');
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: "Access denied",
       });
     }
 
     // Enhanced status transition validation with role-based permissions
     const allowedTransitions = {
+
       'pending': {
         vendor: ['accepted', 'cancelled'],  // Vendor can accept or cancel
         customer: ['cancelled']             // Customer can only cancel
@@ -417,9 +430,10 @@ const updateJobStatus = async (req, res) => {
         vendor: [],                         // No transitions from completed
         customer: []
       }
+
     };
 
-    const userRole = isVendor ? 'vendor' : 'customer';
+    const userRole = isVendor ? "vendor" : "customer";
     const allowedStatuses = allowedTransitions[job.status]?.[userRole] || [];
 
     console.log('🔍 Status transition check:', {
@@ -434,7 +448,7 @@ const updateJobStatus = async (req, res) => {
       console.log('❌ Status transition not allowed');
       return res.status(400).json({
         success: false,
-        message: `As a ${userRole}, you cannot change status from ${job.status} to ${status}`
+        message: `As a ${userRole}, you cannot change status from ${job.status} to ${status}`,
       });
     }
 
@@ -449,67 +463,72 @@ const updateJobStatus = async (req, res) => {
 
     // Handle specific status updates
     switch (status) {
+
       case 'accepted':
+
         job.scheduling.confirmedDate = new Date();
         break;
+
       
       case 'completed':
+
         if (deliveryNotes) {
           job.deliverables.push(deliveryNotes);
         }
         break;
+
       
       case 'cancelled':
+
         job.cancellation = {
           cancelledBy: user._id,
-          reason: reason || 'No reason provided',
-          cancelledAt: new Date()
+          reason: reason || "No reason provided",
+          cancelledAt: new Date(),
         };
         break;
     }
 
     // Add system message for status change
-    const statusMessage = reason ? 
-      `Job status changed from ${previousStatus} to ${status}. Reason: ${reason}` :
-      `Job status changed from ${previousStatus} to ${status}`;
+    const statusMessage = reason
+      ? `Job status changed from ${previousStatus} to ${status}. Reason: ${reason}`
+      : `Job status changed from ${previousStatus} to ${status}`;
 
     job.messages.push({
       sender: user._id,
       message: statusMessage,
-      type: 'status_update'
+      type: "status_update",
     });
 
     await job.save();
 
     // Update service statistics if needed
-    if (status === 'completed') {
+    if (status === "completed") {
       await Service.findByIdAndUpdate(job.service._id, {
-        $inc: { 'stats.bookings': 1 }
+        $inc: { "stats.bookings": 1 },
       });
     }
 
     // Get updated job with populated fields
     const updatedJob = await Job.findById(job._id)
-      .populate('vendor', 'name email avatar')
-      .populate('customer', 'name email avatar')
-      .populate('service', 'title');
+      .populate("vendor", "name email avatar")
+      .populate("customer", "name email avatar")
+      .populate("service", "title");
 
     res.json({
       success: true,
-      message: 'Job status updated successfully',
+      message: "Job status updated successfully",
       data: {
         job: updatedJob,
         previousStatus,
-        newStatus: status
-      }
+        newStatus: status,
+      },
     });
-
   } catch (error) {
-    console.error('Error updating job status:', error);
+    console.error("Error updating job status:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update job status',
-      error: error.message
+      message: "Failed to update job status",
+      error: error.message,
     });
   }
 };
@@ -528,7 +547,7 @@ const addMessage = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
@@ -537,18 +556,18 @@ const addMessage = async (req, res) => {
     if (!job) {
       return res.status(404).json({
         success: false,
-        message: 'Job not found'
+        message: "Job not found",
       });
     }
 
     // Check permissions
     const isCustomer = job.customer.toString() === user._id.toString();
     const isVendor = job.vendor.toString() === user._id.toString();
-    
+
     if (!isCustomer && !isVendor) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: "Access denied",
       });
     }
 
@@ -556,29 +575,30 @@ const addMessage = async (req, res) => {
     job.messages.push({
       sender: user._id,
       message: message,
-      type: 'message'
+      type: "message",
     });
 
     await job.save();
 
     // Get the populated message
-    const updatedJob = await Job.findById(id)
-      .populate('messages.sender', 'name avatar');
-    
+    const updatedJob = await Job.findById(id).populate(
+      "messages.sender",
+      "name avatar"
+    );
+
     const newMessage = updatedJob.messages[updatedJob.messages.length - 1];
 
     res.json({
       success: true,
-      message: 'Message added successfully',
-      data: newMessage
+      message: "Message added successfully",
+      data: newMessage,
     });
-
   } catch (error) {
-    console.error('Error adding message:', error);
+    console.error("Error adding message:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to add message',
-      error: error.message
+      message: "Failed to add message",
+      error: error.message,
     });
   }
 };
@@ -592,19 +612,19 @@ const uploadFile = async (req, res) => {
     const userId = req.user.uid;
 
     // Handle file upload
-    upload.single('file')(req, res, async (err) => {
+    upload.single("file")(req, res, async (err) => {
       if (err) {
         return res.status(400).json({
           success: false,
-          message: 'File upload failed',
-          error: err.message
+          message: "File upload failed",
+          error: err.message,
         });
       }
 
       if (!req.file) {
         return res.status(400).json({
           success: false,
-          message: 'No file provided'
+          message: "No file provided",
         });
       }
 
@@ -613,7 +633,7 @@ const uploadFile = async (req, res) => {
       if (!user) {
         return res.status(404).json({
           success: false,
-          message: 'User not found'
+          message: "User not found",
         });
       }
 
@@ -622,18 +642,18 @@ const uploadFile = async (req, res) => {
       if (!job) {
         return res.status(404).json({
           success: false,
-          message: 'Job not found'
+          message: "Job not found",
         });
       }
 
       // Check permissions
       const isCustomer = job.customer.toString() === user._id.toString();
       const isVendor = job.vendor.toString() === user._id.toString();
-      
+
       if (!isCustomer && !isVendor) {
         return res.status(403).json({
           success: false,
-          message: 'Access denied'
+          message: "Access denied",
         });
       }
 
@@ -642,7 +662,7 @@ const uploadFile = async (req, res) => {
         name: req.file.originalname,
         url: `/uploads/jobs/${req.file.filename}`,
         type: req.file.mimetype,
-        uploadedBy: user._id
+        uploadedBy: user._id,
       };
 
       job.attachments.push(attachment);
@@ -650,17 +670,16 @@ const uploadFile = async (req, res) => {
 
       res.json({
         success: true,
-        message: 'File uploaded successfully',
-        data: attachment
+        message: "File uploaded successfully",
+        data: attachment,
       });
     });
-
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error("Error uploading file:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to upload file',
-      error: error.message
+      message: "Failed to upload file",
+      error: error.message,
     });
   }
 };
@@ -671,22 +690,22 @@ const uploadFile = async (req, res) => {
 const getJobStats = async (req, res) => {
   try {
     const userId = req.user.uid;
-    const { role = 'customer' } = req.query;
+    const { role = "customer" } = req.query;
 
     // Find user
     const user = await User.findOne({ firebaseUid: userId });
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     // Build query based on role
     let matchQuery = {};
-    if (role === 'customer') {
+    if (role === "customer") {
       matchQuery.customer = user._id;
-    } else if (role === 'vendor') {
+    } else if (role === "vendor") {
       matchQuery.vendor = user._id;
     }
 
@@ -695,17 +714,17 @@ const getJobStats = async (req, res) => {
       { $match: matchQuery },
       {
         $group: {
-          _id: '$status',
+          _id: "$status",
           count: { $sum: 1 },
-          totalAmount: { $sum: '$pricing.estimatedTotal' }
-        }
-      }
+          totalAmount: { $sum: "$pricing.estimatedTotal" },
+        },
+      },
     ]);
 
     // Get recent jobs
     const recentJobs = await Job.find(matchQuery)
-      .populate('service', 'title')
-      .populate(role === 'customer' ? 'vendor' : 'customer', 'name avatar')
+      .populate("service", "title")
+      .populate(role === "customer" ? "vendor" : "customer", "name avatar")
       .sort({ createdAt: -1 })
       .limit(5)
       .lean();
@@ -717,10 +736,10 @@ const getJobStats = async (req, res) => {
       accepted: 0,
       completed: 0,
       cancelled: 0,
-      totalRevenue: 0
+      totalRevenue: 0,
     };
 
-    stats.forEach(stat => {
+    stats.forEach((stat) => {
       formattedStats.total += stat.count;
       formattedStats[stat._id] = stat.count;
       formattedStats.totalRevenue += stat.totalAmount || 0;
@@ -730,16 +749,15 @@ const getJobStats = async (req, res) => {
       success: true,
       data: {
         stats: formattedStats,
-        recentJobs
-      }
+        recentJobs,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching job statistics:', error);
+    console.error("Error fetching job statistics:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch job statistics',
-      error: error.message
+      message: "Failed to fetch job statistics",
+      error: error.message,
     });
   }
 };
@@ -757,7 +775,7 @@ const getJobStatusTransitions = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
@@ -766,25 +784,26 @@ const getJobStatusTransitions = async (req, res) => {
     if (!job) {
       return res.status(404).json({
         success: false,
-        message: 'Job not found'
+        message: "Job not found",
       });
     }
 
     // Check permissions
     const isCustomer = job.customer.toString() === user._id.toString();
     const isVendor = job.vendor.toString() === user._id.toString();
-    
+
     if (!isCustomer && !isVendor) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: "Access denied",
       });
     }
 
     // Define available transitions with role-based permissions
     const statusTransitions = {
-      'pending': {
+      pending: {
         vendor: [
+
           { status: 'accepted', label: 'Accept Job', description: 'Accept the job request directly' },
           { status: 'cancelled', label: 'Cancel Request', description: 'Cancel the job request' }
         ],
@@ -800,35 +819,38 @@ const getJobStatusTransitions = async (req, res) => {
           { status: 'completed', label: 'Mark Complete', description: 'Mark the job as completed' },
           { status: 'cancelled', label: 'Cancel Job', description: 'Cancel the job' }
         ]
+
       },
-      'cancelled': {
+      cancelled: {
         vendor: [],
-        customer: []
+        customer: [],
       },
+
       'completed': {
+
         vendor: [],
-        customer: []
-      }
+        customer: [],
+      },
     };
 
-    const userRole = isVendor ? 'vendor' : 'customer';
-    const availableTransitions = statusTransitions[job.status]?.[userRole] || [];
+    const userRole = isVendor ? "vendor" : "customer";
+    const availableTransitions =
+      statusTransitions[job.status]?.[userRole] || [];
 
     res.json({
       success: true,
       data: {
         currentStatus: job.status,
         userRole,
-        availableTransitions
-      }
+        availableTransitions,
+      },
     });
-
   } catch (error) {
-    console.error('Error getting job status transitions:', error);
+    console.error("Error getting job status transitions:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get status transitions',
-      error: error.message
+      message: "Failed to get status transitions",
+      error: error.message,
     });
   }
 };
@@ -841,5 +863,5 @@ module.exports = {
   addMessage,
   uploadFile,
   getJobStats,
-  getJobStatusTransitions
-}; 
+  getJobStatusTransitions,
+};

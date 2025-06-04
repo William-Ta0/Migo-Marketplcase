@@ -1,29 +1,31 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { getJobs, getJobStats, updateJobStatus } from '../api/jobApi';
-import { useAuth } from '../context/AuthContext';
-import '../styles/JobsDashboard.css';
+import React, { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { getJobs, getJobStats, updateJobStatus } from "../api/jobApi";
+import { useAuth } from "../context/AuthContext";
+import "../styles/JobsDashboard.css";
 
 const JobsDashboard = () => {
   const { user, userRole } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [error, setError] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [filters, setFilters] = useState({
-    status: 'all',
+    status: "all",
     page: 1,
-    limit: 50
+    limit: 50,
   });
 
   // Filter options for the new UI (same as customer dashboard)
   const filterOptions = [
+
     { key: 'all', label: 'All Jobs' },
     { key: 'pending', label: 'Pending' },
     { key: 'accepted', label: 'Accepted' },
     { key: 'completed', label: 'Completed' },
     { key: 'cancelled', label: 'Cancelled' },
+
   ];
 
   useEffect(() => {
@@ -33,37 +35,39 @@ const JobsDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      setError('');
-      
+      setError("");
+
       // Always fetch vendor jobs since this page is vendor-only
-      console.log('Fetching vendor jobs with filters:', filters);
-      console.log('Current user:', user?.uid);
-      
+      console.log("Fetching vendor jobs with filters:", filters);
+      console.log("Current user:", user?.uid);
+
       // Fetch jobs and stats
       const [jobsResponse, statsResponse] = await Promise.all([
-        getJobs({ ...filters, role: 'vendor' }),
-        getJobStats('vendor')
+        getJobs({ ...filters, role: "vendor" }),
+        getJobStats("vendor"),
       ]);
 
-      console.log('Jobs response:', jobsResponse);
-      console.log('Stats response:', statsResponse);
+      console.log("Jobs response:", jobsResponse);
+      console.log("Stats response:", statsResponse);
 
       if (jobsResponse && jobsResponse.success) {
         setJobs(jobsResponse.data || []);
       } else {
-        console.warn('No jobs data received');
+        console.warn("No jobs data received");
         setJobs([]);
       }
 
       if (statsResponse && statsResponse.success) {
         setStats(statsResponse.data?.stats || statsResponse.data || {});
       } else {
-        console.warn('No stats data received');
+        console.warn("No stats data received");
         setStats({});
       }
     } catch (err) {
-      console.error('Error fetching jobs:', err);
-      setError('Unable to load vendor jobs. Please check your connection and try again.');
+      console.error("Error fetching jobs:", err);
+      setError(
+        "Unable to load vendor jobs. Please check your connection and try again."
+      );
       setJobs([]);
       setStats({});
     } finally {
@@ -72,64 +76,64 @@ const JobsDashboard = () => {
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [key]: value,
-      page: 1 // Reset to first page when filters change
+      page: 1, // Reset to first page when filters change
     }));
   };
 
   // Handle filter tab change
   const handleFilterTabChange = (filterKey) => {
     setActiveFilter(filterKey);
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      status: filterKey === 'all' ? 'all' : filterKey,
-      page: 1
+      status: filterKey === "all" ? "all" : filterKey,
+      page: 1,
     }));
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      'pending': '#f59e0b',
-      'reviewing': '#3b82f6',
-      'quoted': '#8b5cf6',
-      'accepted': '#10b981',
-      'confirmed': '#059669',
-      'in_progress': '#0ea5e9',
-      'completed': '#22c55e',
-      'delivered': '#16a34a',
-      'cancelled': '#ef4444',
-      'disputed': '#dc2626',
-      'closed': '#6b7280'
+      pending: "#f59e0b",
+      reviewing: "#3b82f6",
+      quoted: "#8b5cf6",
+      accepted: "#10b981",
+      confirmed: "#059669",
+      in_progress: "#0ea5e9",
+      completed: "#22c55e",
+      delivered: "#16a34a",
+      cancelled: "#ef4444",
+      disputed: "#dc2626",
+      closed: "#6b7280",
     };
-    return colors[status] || '#6b7280';
+    return colors[status] || "#6b7280";
   };
 
   const getStatusText = (status) => {
     const statusTexts = {
-      'pending': 'Pending Review',
-      'reviewing': 'Under Review',
-      'quoted': 'Quote Provided',
-      'accepted': 'Accepted',
-      'confirmed': 'Confirmed',
-      'in_progress': 'In Progress',
-      'completed': 'Completed',
-      'delivered': 'Delivered',
-      'cancelled': 'Cancelled',
-      'disputed': 'Disputed',
-      'closed': 'Closed'
+      pending: "Pending Review",
+      reviewing: "Under Review",
+      quoted: "Quote Provided",
+      accepted: "Accepted",
+      confirmed: "Confirmed",
+      in_progress: "In Progress",
+      completed: "Completed",
+      delivered: "Delivered",
+      cancelled: "Cancelled",
+      disputed: "Disputed",
+      closed: "Closed",
     };
     return statusTexts[status] || status;
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -150,19 +154,21 @@ const JobsDashboard = () => {
       await updateJobStatus(jobId, newStatus);
       await fetchData(); // Refresh the job list
     } catch (err) {
-      console.error('Error updating job status:', err);
-      setError('Failed to update job status');
+      console.error("Error updating job status:", err);
+      setError("Failed to update job status");
     }
   };
 
   // Calculate statistics with proper exclusions
   const calculatedStats = useMemo(() => {
+
     const activeJobs = jobs.filter(job => job.status === 'accepted');
     const pendingJobs = jobs.filter(job => job.status === 'pending');
     const completedJobs = jobs.filter(job => job.status === 'completed');
     
+
     // Exclude cancelled jobs from total revenue calculation
-    const revenueJobs = jobs.filter(job => job.status !== 'cancelled');
+    const revenueJobs = jobs.filter((job) => job.status !== "cancelled");
     const totalRevenue = revenueJobs.reduce((sum, job) => {
       const amount = job.selectedPackage?.price || job.pricing?.amount || 0;
       return sum + amount;
@@ -174,14 +180,14 @@ const JobsDashboard = () => {
       pending: pendingJobs.length,
       completed: completedJobs.length,
       totalRevenue: totalRevenue,
-      ...stats // Include any other stats from API
+      ...stats, // Include any other stats from API
     };
   }, [jobs, stats]);
 
   // Filter jobs based on active filter
   const filteredJobs = useMemo(() => {
-    if (activeFilter === 'all') return jobs;
-    return jobs.filter(job => job.status === activeFilter);
+    if (activeFilter === "all") return jobs;
+    return jobs.filter((job) => job.status === activeFilter);
   }, [jobs, activeFilter]);
 
   if (loading) {
@@ -251,10 +257,12 @@ const JobsDashboard = () => {
         {/* Filter Tabs (same style as customer dashboard) */}
         <div className="filter-section">
           <div className="filter-tabs">
-            {filterOptions.map(filter => (
+            {filterOptions.map((filter) => (
               <button
                 key={filter.key}
-                className={`filter-tab ${activeFilter === filter.key ? 'active' : ''}`}
+                className={`filter-tab ${
+                  activeFilter === filter.key ? "active" : ""
+                }`}
                 onClick={() => handleFilterTabChange(filter.key)}
             >
                 {filter.label}
@@ -284,15 +292,11 @@ const JobsDashboard = () => {
               <div className="empty-icon">📝</div>
               <h3>No jobs found</h3>
               <p>
-                {activeFilter === 'all' 
+                {activeFilter === "all"
                   ? "You don't have any orders yet."
-                  : `No ${activeFilter} jobs found. Try adjusting your filter.`
-                }
+                  : `No ${activeFilter} jobs found. Try adjusting your filter.`}
               </p>
-              <Link 
-                to="/services/create" 
-                className="btn btn-primary"
-              >
+              <Link to="/services/create" className="btn btn-primary">
                 Create Service
               </Link>
             </div>
@@ -303,19 +307,25 @@ const JobsDashboard = () => {
                   <div className="job-header">
                     <div className="job-info">
                       <h3>{job.title}</h3>
-                      <p className="job-id">Job #{job.jobNumber || job._id.slice(-8)}</p>
+                      <p className="job-id">
+                        Job #{job.jobNumber || job._id.slice(-8)}
+                      </p>
                     </div>
+
                     <div className={`status-badge status-${job.status}`}>
                       {job.status.toUpperCase()}
+
                     </div>
                   </div>
 
                   <div className="job-details">
                     <div className="job-parties">
+
                         <div className="party-info">
                           <span className="label">Customer:</span>
                           <div className="party">
                           <span>{job.customer?.name || 'Unknown Customer'}</span>
+
                         </div>
                       </div>
                     </div>
@@ -342,37 +352,41 @@ const JobsDashboard = () => {
                       {job.scheduling?.preferredDate && (
                         <div className="meta-item">
                           <span className="label">Preferred Date:</span>
-                          <span>{formatDate(job.scheduling.preferredDate)}</span>
+                          <span>
+                            {formatDate(job.scheduling.preferredDate)}
+                          </span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   <div className="job-actions">
-                    <Link 
-                      to={`/jobs/${job._id}`} 
-                      className="btn btn-primary"
-                    >
+                    <Link to={`/jobs/${job._id}`} className="btn btn-primary">
                       View Details
                     </Link>
-                    
+
                     {/* Enhanced status-based actions */}
-                    {job.status === 'pending' && (
+                    {job.status === "pending" && (
                       <div className="vendor-pending-actions">
-                        <button 
+                        <button
                           className="btn btn-success"
-                          onClick={() => handleQuickStatusUpdate(job._id, 'accepted')}
+                          onClick={() =>
+                            handleQuickStatusUpdate(job._id, "accepted")
+                          }
                         >
                           Accept
                         </button>
+
                         <button 
                           className="btn btn-danger"
                           onClick={() => handleQuickStatusUpdate(job._id, 'cancelled')}
+
                         >
                           Cancel
                         </button>
                       </div>
                     )}
+
                     
                     {job.status === 'accepted' && (
                       <div className="vendor-accepted-actions">
@@ -384,6 +398,7 @@ const JobsDashboard = () => {
                       <div className="job-final-status">
                         <p className="status-note">Job {job.status}</p>
                       </div>
+
                     )}
                   </div>
                 </div>
@@ -396,4 +411,4 @@ const JobsDashboard = () => {
   );
 };
 
-export default JobsDashboard; 
+export default JobsDashboard;

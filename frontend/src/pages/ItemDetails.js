@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getItemById, updateItem, deleteItem } from '../api/itemApi';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getItemById, updateItem, deleteItem } from "../api/itemApi";
 
 const ItemDetails = () => {
   const { id } = useParams();
@@ -10,8 +10,8 @@ const ItemDetails = () => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     completed: false,
   });
 
@@ -27,7 +27,7 @@ const ItemDetails = () => {
         });
         setLoading(false);
       } catch (error) {
-        setError('Failed to fetch item');
+        setError("Failed to fetch item");
         setLoading(false);
       }
     };
@@ -39,7 +39,7 @@ const ItemDetails = () => {
     const { name, value, type, checked } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -50,17 +50,17 @@ const ItemDetails = () => {
       setItem(updatedItem);
       setIsEditing(false);
     } catch (error) {
-      setError('Failed to update item');
+      setError("Failed to update item");
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
+    if (window.confirm("Are you sure you want to delete this item?")) {
       try {
         await deleteItem(id);
-        navigate('/');
+        navigate("/");
       } catch (error) {
-        setError('Failed to delete item');
+        setError("Failed to delete item");
       }
     }
   };
@@ -127,14 +127,14 @@ const ItemDetails = () => {
         <div>
           <h2>{item.name}</h2>
           <p>{item.description}</p>
-          <p>Status: {item.completed ? 'Completed' : 'Not Completed'}</p>
+          <p>Status: {item.completed ? "Completed" : "Not Completed"}</p>
           <button className="btn" onClick={() => setIsEditing(true)}>
             Edit
           </button>
           <button className="btn" onClick={handleDelete}>
             Delete
           </button>
-          <button className="btn" onClick={() => navigate('/')}>
+          <button className="btn" onClick={() => navigate("/")}>
             Back to Home
           </button>
         </div>
@@ -143,4 +143,4 @@ const ItemDetails = () => {
   );
 };
 
-export default ItemDetails; 
+export default ItemDetails;

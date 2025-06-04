@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import '../styles/VendorOnboarding.css';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import "../styles/VendorOnboarding.css";
 
 const VendorOnboarding = () => {
   const { currentUser } = useAuth();
@@ -12,24 +12,24 @@ const VendorOnboarding = () => {
   // State management
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
   // Categories and skills state
   const [categories, setCategories] = useState({});
   const [selectedSkills, setSelectedSkills] = useState([]);
-  
+
   // Verification documents state
   const [idDocument, setIdDocument] = useState(null);
   const [businessLicense, setBusinessLicense] = useState(null);
-  const [idPreview, setIdPreview] = useState('');
-  const [businessPreview, setBusinessPreview] = useState('');
-  
+  const [idPreview, setIdPreview] = useState("");
+  const [businessPreview, setBusinessPreview] = useState("");
+
   // Onboarding completion state
   const [onboardingData, setOnboardingData] = useState({
     skillsCompleted: false,
     documentsUploaded: false,
-    onboardingCompleted: false
+    onboardingCompleted: false,
   });
 
   const totalSteps = 4;
@@ -40,45 +40,45 @@ const VendorOnboarding = () => {
       const data = await response.json();
       setCategories(data.categories);
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      setError('Failed to load service categories');
+      console.error("Error fetching categories:", error);
+      setError("Failed to load service categories");
     }
   };
 
   const checkOnboardingStatus = async () => {
     if (!currentUser) return;
-    
+
     try {
       const token = await currentUser.getIdToken();
       const response = await fetch(`${getApiUrl()}/vendor/profile`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const vendorInfo = data.profile.vendorInfo;
-        
+
         if (vendorInfo.onboardingCompleted) {
-          navigate('/dashboard');
+          navigate("/dashboard");
           return;
         }
-        
+
         // Set current step based on completion status
         if (vendorInfo.skills && vendorInfo.skills.length > 0) {
           setSelectedSkills(vendorInfo.skills);
-          setOnboardingData(prev => ({ ...prev, skillsCompleted: true }));
+          setOnboardingData((prev) => ({ ...prev, skillsCompleted: true }));
           setCurrentStep(3); // Go to verification step if skills are already saved
         }
-        
-        if (vendorInfo.verification.status === 'submitted') {
-          setOnboardingData(prev => ({ ...prev, documentsUploaded: true }));
+
+        if (vendorInfo.verification.status === "submitted") {
+          setOnboardingData((prev) => ({ ...prev, documentsUploaded: true }));
           setCurrentStep(4); // Go to review step if documents are uploaded
         }
       }
     } catch (error) {
-      console.error('Error checking onboarding status:', error);
+      console.error("Error checking onboarding status:", error);
     }
   };
 
@@ -88,34 +88,38 @@ const VendorOnboarding = () => {
   }, [currentUser]); // Add currentUser as dependency
 
   const getApiUrl = () => {
-    return process.env.NODE_ENV === 'production' 
-      ? process.env.REACT_APP_API_URL || 'https://your-backend-url.com/api'
-      : 'http://localhost:5001/api';
+    return process.env.NODE_ENV === "production"
+      ? process.env.REACT_APP_API_URL || "https://your-backend-url.com/api"
+      : "http://localhost:5001/api";
   };
 
   const addSkill = (category) => {
     const newSkill = {
       category,
       subcategories: [],
-      experienceLevel: 'intermediate'
+      experienceLevel: "intermediate",
     };
-    setSelectedSkills(prev => [...prev, newSkill]);
+    setSelectedSkills((prev) => [...prev, newSkill]);
   };
 
   const removeSkill = (index) => {
-    setSelectedSkills(prev => prev.filter((_, i) => i !== index));
+    setSelectedSkills((prev) => prev.filter((_, i) => i !== index));
   };
 
   const updateSkillSubcategories = (index, subcategories) => {
-    setSelectedSkills(prev => prev.map((skill, i) => 
-      i === index ? { ...skill, subcategories } : skill
-    ));
+    setSelectedSkills((prev) =>
+      prev.map((skill, i) =>
+        i === index ? { ...skill, subcategories } : skill
+      )
+    );
   };
 
   const updateSkillExperience = (index, experienceLevel) => {
-    setSelectedSkills(prev => prev.map((skill, i) => 
-      i === index ? { ...skill, experienceLevel } : skill
-    ));
+    setSelectedSkills((prev) =>
+      prev.map((skill, i) =>
+        i === index ? { ...skill, experienceLevel } : skill
+      )
+    );
   };
 
   const handleFileChange = (e, type) => {
@@ -123,36 +127,41 @@ const VendorOnboarding = () => {
     if (!file) return;
 
     // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "application/pdf",
+    ];
     if (!validTypes.includes(file.type)) {
-      setError('Please upload an image (JPG, PNG) or PDF file');
+      setError("Please upload an image (JPG, PNG) or PDF file");
       return;
     }
 
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
+      setError("File size must be less than 10MB");
       return;
     }
 
-    if (type === 'id') {
+    if (type === "id") {
       setIdDocument(file);
       // Create preview if it's an image
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = (e) => setIdPreview(e.target.result);
         reader.readAsDataURL(file);
       } else {
-        setIdPreview('');
+        setIdPreview("");
       }
     } else {
       setBusinessLicense(file);
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = (e) => setBusinessPreview(e.target.result);
         reader.readAsDataURL(file);
       } else {
-        setBusinessPreview('');
+        setBusinessPreview("");
       }
     }
   };
@@ -160,10 +169,10 @@ const VendorOnboarding = () => {
   const saveSkills = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       if (selectedSkills.length === 0) {
-        setError('Please select at least one skill');
+        setError("Please select at least one skill");
         return;
       }
 
@@ -176,34 +185,34 @@ const VendorOnboarding = () => {
       }
 
       if (!currentUser) {
-        setError('Authentication error. Please log in again.');
+        setError("Authentication error. Please log in again.");
         return;
       }
 
       const token = await currentUser.getIdToken();
       const response = await fetch(`${getApiUrl()}/vendor/skills`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ skills: selectedSkills })
+        body: JSON.stringify({ skills: selectedSkills }),
       });
 
       if (response.ok) {
-        setOnboardingData(prev => ({ ...prev, skillsCompleted: true }));
-        setMessage('Skills saved successfully!');
+        setOnboardingData((prev) => ({ ...prev, skillsCompleted: true }));
+        setMessage("Skills saved successfully!");
         setTimeout(() => {
           setCurrentStep(3); // Go to verification step (step 3)
-          setMessage('');
+          setMessage("");
         }, 1500);
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to save skills');
+        setError(data.error || "Failed to save skills");
       }
     } catch (error) {
-      console.error('Error saving skills:', error);
-      setError('Failed to save skills. Please try again.');
+      console.error("Error saving skills:", error);
+      setError("Failed to save skills. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -212,47 +221,50 @@ const VendorOnboarding = () => {
   const uploadDocuments = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       if (!idDocument) {
-        setError('Please upload your ID document');
+        setError("Please upload your ID document");
         return;
       }
 
       if (!currentUser) {
-        setError('Authentication error. Please log in again.');
+        setError("Authentication error. Please log in again.");
         return;
       }
 
       const formData = new FormData();
-      formData.append('idDocument', idDocument);
+      formData.append("idDocument", idDocument);
       if (businessLicense) {
-        formData.append('businessLicense', businessLicense);
+        formData.append("businessLicense", businessLicense);
       }
 
       const token = await currentUser.getIdToken();
-      const response = await fetch(`${getApiUrl()}/vendor/verification/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
+      const response = await fetch(
+        `${getApiUrl()}/vendor/verification/upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
-        setOnboardingData(prev => ({ ...prev, documentsUploaded: true }));
-        setMessage('Documents uploaded successfully!');
+        setOnboardingData((prev) => ({ ...prev, documentsUploaded: true }));
+        setMessage("Documents uploaded successfully!");
         setTimeout(() => {
           setCurrentStep(4); // Go to review step (step 4)
-          setMessage('');
+          setMessage("");
         }, 1500);
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to upload documents');
+        setError(data.error || "Failed to upload documents");
       }
     } catch (error) {
-      console.error('Error uploading documents:', error);
-      setError('Failed to upload documents. Please try again.');
+      console.error("Error uploading documents:", error);
+      setError("Failed to upload documents. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -261,35 +273,38 @@ const VendorOnboarding = () => {
   const completeOnboarding = async () => {
     try {
       setLoading(true);
-      setError('');
+      setError("");
 
       if (!currentUser) {
-        setError('Authentication error. Please log in again.');
+        setError("Authentication error. Please log in again.");
         return;
       }
 
       const token = await currentUser.getIdToken();
-      const response = await fetch(`${getApiUrl()}/vendor/onboarding/complete`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await fetch(
+        `${getApiUrl()}/vendor/onboarding/complete`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
-        setOnboardingData(prev => ({ ...prev, onboardingCompleted: true }));
+        setOnboardingData((prev) => ({ ...prev, onboardingCompleted: true }));
         setMessage(data.message);
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate("/dashboard");
         }, 2000);
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to complete onboarding');
+        setError(data.error || "Failed to complete onboarding");
       }
     } catch (error) {
-      console.error('Error completing onboarding:', error);
-      setError('Failed to complete onboarding. Please try again.');
+      console.error("Error completing onboarding:", error);
+      setError("Failed to complete onboarding. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -322,7 +337,7 @@ const VendorOnboarding = () => {
           <div key={category} className="category-card">
             <h4>{category}</h4>
             <div className="subcategories">
-              {subcategories.map(subcategory => (
+              {subcategories.map((subcategory) => (
                 <span key={subcategory} className="subcategory-tag">
                   {subcategory}
                 </span>
@@ -331,9 +346,13 @@ const VendorOnboarding = () => {
             <button
               className="btn btn-secondary"
               onClick={() => addSkill(category)}
-              disabled={selectedSkills.some(skill => skill.category === category)}
+              disabled={selectedSkills.some(
+                (skill) => skill.category === category
+              )}
             >
-              {selectedSkills.some(skill => skill.category === category) ? 'Added' : 'Add Skill'}
+              {selectedSkills.some((skill) => skill.category === category)
+                ? "Added"
+                : "Add Skill"}
             </button>
           </div>
         ))}
@@ -353,12 +372,12 @@ const VendorOnboarding = () => {
                   Remove
                 </button>
               </div>
-              
+
               <div className="skill-details">
                 <div className="subcategory-selection">
                   <label>Select specific services:</label>
                   <div className="checkbox-grid">
-                    {categories[skill.category]?.map(subcategory => (
+                    {categories[skill.category]?.map((subcategory) => (
                       <label key={subcategory} className="checkbox-label">
                         <input
                           type="checkbox"
@@ -366,7 +385,9 @@ const VendorOnboarding = () => {
                           onChange={(e) => {
                             const newSubcategories = e.target.checked
                               ? [...skill.subcategories, subcategory]
-                              : skill.subcategories.filter(s => s !== subcategory);
+                              : skill.subcategories.filter(
+                                  (s) => s !== subcategory
+                                );
                             updateSkillSubcategories(index, newSubcategories);
                           }}
                         />
@@ -380,10 +401,14 @@ const VendorOnboarding = () => {
                   <label>Experience Level:</label>
                   <select
                     value={skill.experienceLevel}
-                    onChange={(e) => updateSkillExperience(index, e.target.value)}
+                    onChange={(e) =>
+                      updateSkillExperience(index, e.target.value)
+                    }
                   >
                     <option value="beginner">Beginner (0-2 years)</option>
-                    <option value="intermediate">Intermediate (2-5 years)</option>
+                    <option value="intermediate">
+                      Intermediate (2-5 years)
+                    </option>
                     <option value="expert">Expert (5+ years)</option>
                   </select>
                 </div>
@@ -399,7 +424,7 @@ const VendorOnboarding = () => {
           onClick={saveSkills}
           disabled={loading || selectedSkills.length === 0}
         >
-          {loading ? 'Saving...' : 'Save Skills & Continue'}
+          {loading ? "Saving..." : "Save Skills & Continue"}
         </button>
       </div>
     </div>
@@ -418,11 +443,20 @@ const VendorOnboarding = () => {
       <div className="document-upload-section">
         <div className="document-upload">
           <h4>ID Document (Required)</h4>
-          <p>Upload a government-issued ID (driver's license, passport, etc.)</p>
-          
-          <div className="upload-area" onClick={() => idDocumentRef.current?.click()}>
+          <p>
+            Upload a government-issued ID (driver's license, passport, etc.)
+          </p>
+
+          <div
+            className="upload-area"
+            onClick={() => idDocumentRef.current?.click()}
+          >
             {idPreview ? (
-              <img src={idPreview} alt="ID Preview" className="document-preview" />
+              <img
+                src={idPreview}
+                alt="ID Preview"
+                className="document-preview"
+              />
             ) : (
               <div className="upload-placeholder">
                 <span className="upload-icon">📄</span>
@@ -431,18 +465,19 @@ const VendorOnboarding = () => {
               </div>
             )}
           </div>
-          
+
           <input
             type="file"
             ref={idDocumentRef}
-            onChange={(e) => handleFileChange(e, 'id')}
+            onChange={(e) => handleFileChange(e, "id")}
             accept="image/*,.pdf"
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
           />
-          
+
           {idDocument && (
             <p className="file-info">
-              Selected: {idDocument.name} ({(idDocument.size / 1024 / 1024).toFixed(2)} MB)
+              Selected: {idDocument.name} (
+              {(idDocument.size / 1024 / 1024).toFixed(2)} MB)
             </p>
           )}
         </div>
@@ -450,10 +485,17 @@ const VendorOnboarding = () => {
         <div className="document-upload">
           <h4>Business License (Optional)</h4>
           <p>Upload your business license if you have one</p>
-          
-          <div className="upload-area" onClick={() => businessLicenseRef.current?.click()}>
+
+          <div
+            className="upload-area"
+            onClick={() => businessLicenseRef.current?.click()}
+          >
             {businessPreview ? (
-              <img src={businessPreview} alt="Business License Preview" className="document-preview" />
+              <img
+                src={businessPreview}
+                alt="Business License Preview"
+                className="document-preview"
+              />
             ) : (
               <div className="upload-placeholder">
                 <span className="upload-icon">🏢</span>
@@ -462,18 +504,19 @@ const VendorOnboarding = () => {
               </div>
             )}
           </div>
-          
+
           <input
             type="file"
             ref={businessLicenseRef}
-            onChange={(e) => handleFileChange(e, 'business')}
+            onChange={(e) => handleFileChange(e, "business")}
             accept="image/*,.pdf"
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
           />
-          
+
           {businessLicense && (
             <p className="file-info">
-              Selected: {businessLicense.name} ({(businessLicense.size / 1024 / 1024).toFixed(2)} MB)
+              Selected: {businessLicense.name} (
+              {(businessLicense.size / 1024 / 1024).toFixed(2)} MB)
             </p>
           )}
         </div>
@@ -500,7 +543,7 @@ const VendorOnboarding = () => {
           onClick={uploadDocuments}
           disabled={loading || !idDocument}
         >
-          {loading ? 'Uploading...' : 'Upload Documents & Continue'}
+          {loading ? "Uploading..." : "Upload Documents & Continue"}
         </button>
       </div>
     </div>
@@ -524,8 +567,10 @@ const VendorOnboarding = () => {
             {selectedSkills.map((skill, index) => (
               <div key={index} className="skill-item">
                 <strong>{skill.category}</strong>
-                <span className="experience-badge">{skill.experienceLevel}</span>
-                <p>{skill.subcategories.join(', ')}</p>
+                <span className="experience-badge">
+                  {skill.experienceLevel}
+                </span>
+                <p>{skill.subcategories.join(", ")}</p>
               </div>
             ))}
           </div>
@@ -566,7 +611,7 @@ const VendorOnboarding = () => {
           onClick={completeOnboarding}
           disabled={loading}
         >
-          {loading ? 'Completing...' : 'Complete Onboarding'}
+          {loading ? "Completing..." : "Complete Onboarding"}
         </button>
       </div>
     </div>
@@ -576,8 +621,11 @@ const VendorOnboarding = () => {
     <div className="onboarding-step welcome-step">
       <div className="welcome-content">
         <h2>Welcome to Migo Marketplace!</h2>
-        <p>Let's get you set up as a vendor so you can start receiving service requests</p>
-        
+        <p>
+          Let's get you set up as a vendor so you can start receiving service
+          requests
+        </p>
+
         <div className="onboarding-overview">
           <h3>What we'll cover:</h3>
           <div className="overview-steps">
@@ -631,22 +679,27 @@ const VendorOnboarding = () => {
         <h1>Vendor Onboarding</h1>
         <div className="progress-bar">
           <div className="progress-steps">
-            {[1, 2, 3, 4].map(step => (
+            {[1, 2, 3, 4].map((step) => (
               <div
                 key={step}
-                className={`progress-step ${step <= currentStep ? 'active' : ''} ${step < currentStep ? 'completed' : ''}`}
+                className={`progress-step ${
+                  step <= currentStep ? "active" : ""
+                } ${step < currentStep ? "completed" : ""}`}
               >
                 <span className="step-number">{step}</span>
                 <span className="step-label">
-                  {step === 1 && 'Welcome'}
-                  {step === 2 && 'Skills'}
-                  {step === 3 && 'Verification'}
-                  {step === 4 && 'Complete'}
+                  {step === 1 && "Welcome"}
+                  {step === 2 && "Skills"}
+                  {step === 3 && "Verification"}
+                  {step === 4 && "Complete"}
                 </span>
               </div>
             ))}
           </div>
-          <div className="progress-fill" style={{ width: `${(currentStep / totalSteps) * 100}%` }}></div>
+          <div
+            className="progress-fill"
+            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          ></div>
         </div>
       </div>
 
@@ -660,4 +713,4 @@ const VendorOnboarding = () => {
   );
 };
 
-export default VendorOnboarding; 
+export default VendorOnboarding;

@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { getJobTimeline } from '../api/jobApi';
-import '../styles/JobTimeline.css';
+import React, { useState, useEffect } from "react";
+import { getJobTimeline } from "../api/jobApi";
+import "../styles/JobTimeline.css";
 
 const JobTimeline = ({ jobId, job }) => {
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all'); // all, status, messages, files
+  const [error, setError] = useState("");
+  const [filter, setFilter] = useState("all"); // all, status, messages, files
 
   useEffect(() => {
     fetchTimeline();
@@ -25,7 +25,10 @@ const JobTimeline = ({ jobId, job }) => {
     } catch (err) {
       // Generate timeline from job data if API fails
       generateTimelineFromJob();
-      console.error('Timeline API not available, using generated timeline:', err);
+      console.error(
+        "Timeline API not available, using generated timeline:",
+        err
+      );
     } finally {
       setLoading(false);
     }
@@ -41,25 +44,25 @@ const JobTimeline = ({ jobId, job }) => {
 
     // Add job creation event
     generatedTimeline.push({
-      id: 'created',
-      type: 'status_change',
-      newStatus: 'pending',
-      reason: 'Job created',
+      id: "created",
+      type: "status_change",
+      newStatus: "pending",
+      reason: "Job created",
       timestamp: job.createdAt,
-      actor: 'customer',
-      description: 'Job was created and submitted for review'
+      actor: "customer",
+      description: "Job was created and submitted for review",
     });
 
     // Add current status if different from pending
-    if (job.status !== 'pending') {
+    if (job.status !== "pending") {
       generatedTimeline.push({
-        id: 'current_status',
-        type: 'status_change',
+        id: "current_status",
+        type: "status_change",
         newStatus: job.status,
-        reason: 'Status updated',
+        reason: "Status updated",
         timestamp: job.updatedAt || job.createdAt,
-        actor: 'vendor',
-        description: `Job status changed to ${job.status.replace('_', ' ')}`
+        actor: "vendor",
+        description: `Job status changed to ${job.status.replace("_", " ")}`,
       });
     }
 
@@ -68,76 +71,78 @@ const JobTimeline = ({ jobId, job }) => {
       job.messages.forEach((message, index) => {
         generatedTimeline.push({
           id: `message_${index}`,
-          type: 'message',
+          type: "message",
           content: message.content || message.message,
           timestamp: message.createdAt || message.timestamp,
-          actor: message.sender?.role || message.actor || 'user',
-          description: 'Message sent'
+          actor: message.sender?.role || message.actor || "user",
+          description: "Message sent",
         });
       });
     }
 
     // Sort by timestamp (newest first)
-    generatedTimeline.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
+    generatedTimeline.sort(
+      (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+    );
+
     setTimeline(generatedTimeline);
-    setError(''); // Clear any previous errors
+    setError(""); // Clear any previous errors
   };
 
   const getEventIcon = (type, status) => {
     const icons = {
-      'status_change': {
-        'pending': '⏳',
-        'reviewing': '🔍',
-        'quoted': '💰',
-        'accepted': '✅',
-        'confirmed': '🎯',
-        'in_progress': '🔄',
-        'completed': '✨',
-        'delivered': '📦',
-        'cancelled': '❌',
-        'disputed': '⚠️',
-        'closed': '🏁'
+      status_change: {
+        pending: "⏳",
+        reviewing: "🔍",
+        quoted: "💰",
+        accepted: "✅",
+        confirmed: "🎯",
+        in_progress: "🔄",
+        completed: "✨",
+        delivered: "📦",
+        cancelled: "❌",
+        disputed: "⚠️",
+        closed: "🏁",
       },
-      'message': '💬',
-      'file_upload': '📎',
-      'payment': '💳',
-      'review': '⭐',
-      'milestone': '🎯'
+      message: "💬",
+      file_upload: "📎",
+      payment: "💳",
+      review: "⭐",
+      milestone: "🎯",
     };
 
-    if (type === 'status_change' && status) {
-      return icons.status_change[status] || '🔄';
+    if (type === "status_change" && status) {
+      return icons.status_change[status] || "🔄";
     }
-    return icons[type] || '📋';
+    return icons[type] || "📋";
   };
 
   const getEventColor = (type, status) => {
     const colors = {
-      'status_change': {
-        'pending': '#f59e0b',
-        'reviewing': '#3b82f6',
-        'quoted': '#8b5cf6',
-        'accepted': '#10b981',
-        'confirmed': '#059669',
-        'in_progress': '#0ea5e9',
-        'completed': '#22c55e',
-        'delivered': '#16a34a',
-        'cancelled': '#ef4444',
-        'disputed': '#dc2626',
-        'closed': '#6b7280'
+      status_change: {
+        pending: "#f59e0b",
+        reviewing: "#3b82f6",
+        quoted: "#8b5cf6",
+        accepted: "#10b981",
+        confirmed: "#059669",
+        in_progress: "#0ea5e9",
+        completed: "#22c55e",
+        delivered: "#16a34a",
+        cancelled: "#ef4444",
+        disputed: "#dc2626",
+        closed: "#6b7280",
       },
-      'message': '#6366f1',
-      'file_upload': '#8b5cf6',
-      'payment': '#059669',
-      'review': '#f59e0b',
-      'milestone': '#10b981'
+      message: "#6366f1",
+      file_upload: "#8b5cf6",
+      payment: "#059669",
+      review: "#f59e0b",
+      milestone: "#10b981",
     };
 
-    if (type === 'status_change' && status) {
-      return colors.status_change[status] || '#6b7280';
+    if (type === "status_change" && status) {
+      return colors.status_change[status] || "#6b7280";
     }
-    return colors[type] || '#6b7280';
+    return colors[type] || "#6b7280";
   };
 
   const formatDate = (dateString) => {
@@ -147,68 +152,77 @@ const JobTimeline = ({ jobId, job }) => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 1) {
-      return `Today at ${date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return `Today at ${date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
       })}`;
     } else if (diffDays === 2) {
-      return `Yesterday at ${date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return `Yesterday at ${date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
       })}`;
     } else {
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     }
   };
 
   const getEventTitle = (event) => {
     const titles = {
-      'status_change': `Status changed to ${event.newStatus?.replace('_', ' ').toUpperCase()}`,
-      'message': event.actor === 'customer' ? 'You sent a message' : 'Vendor sent a message',
-      'file_upload': event.actor === 'customer' ? 'You uploaded a file' : 'Vendor uploaded a file',
-      'payment': 'Payment processed',
-      'review': 'Review submitted',
-      'milestone': 'Milestone reached'
+      status_change: `Status changed to ${event.newStatus
+        ?.replace("_", " ")
+        .toUpperCase()}`,
+      message:
+        event.actor === "customer"
+          ? "You sent a message"
+          : "Vendor sent a message",
+      file_upload:
+        event.actor === "customer"
+          ? "You uploaded a file"
+          : "Vendor uploaded a file",
+      payment: "Payment processed",
+      review: "Review submitted",
+      milestone: "Milestone reached",
     };
 
-    return titles[event.type] || 'Activity';
+    return titles[event.type] || "Activity";
   };
 
   const getEventDescription = (event) => {
     switch (event.type) {
-      case 'status_change':
-        return event.reason || 'Status updated automatically';
-      case 'message':
-        return event.content || 'Message sent';
-      case 'file_upload':
-        return event.filename || 'File uploaded';
-      case 'payment':
+      case "status_change":
+        return event.reason || "Status updated automatically";
+      case "message":
+        return event.content || "Message sent";
+      case "file_upload":
+        return event.filename || "File uploaded";
+      case "payment":
         return `Payment of ${event.amount} processed`;
-      case 'review':
+      case "review":
         return `${event.rating} star review: ${event.comment}`;
-      case 'milestone':
-        return event.description || 'Milestone completed';
+      case "milestone":
+        return event.description || "Milestone completed";
       default:
-        return event.description || '';
+        return event.description || "";
     }
   };
 
-  const filteredTimeline = timeline.filter(event => {
-    if (filter === 'all') return true;
-    if (filter === 'status') return event.type === 'status_change';
-    if (filter === 'messages') return event.type === 'message';
-    if (filter === 'files') return event.type === 'file_upload';
+  const filteredTimeline = timeline.filter((event) => {
+    if (filter === "all") return true;
+    if (filter === "status") return event.type === "status_change";
+    if (filter === "messages") return event.type === "message";
+    if (filter === "files") return event.type === "file_upload";
     return true;
   });
 
   const getProgressPercentage = () => {
     if (!job) return 0;
+
     // Updated to match simplified workflow
     const progressMap = {
       'pending': 25,
@@ -217,16 +231,19 @@ const JobTimeline = ({ jobId, job }) => {
       'cancelled': 0
     };
     return progressMap[job.status] || 0;
+
   };
 
   const getNextMilestone = () => {
     if (!job) return null;
     // Updated to match simplified workflow
     const milestones = {
+
       'pending': 'Vendor decision',
       'accepted': 'Work completion',
       'completed': 'Job finished',
       'cancelled': 'Job cancelled'
+
     };
     return milestones[job.status] || null;
   };
@@ -260,29 +277,29 @@ const JobTimeline = ({ jobId, job }) => {
       <div className="timeline-header">
         <h3>Job Timeline</h3>
         <div className="timeline-filters">
-          <button 
-            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
+          <button
+            className={`filter-btn ${filter === "all" ? "active" : ""}`}
+            onClick={() => setFilter("all")}
           >
             All ({timeline.length})
           </button>
-          <button 
-            className={`filter-btn ${filter === 'status' ? 'active' : ''}`}
-            onClick={() => setFilter('status')}
+          <button
+            className={`filter-btn ${filter === "status" ? "active" : ""}`}
+            onClick={() => setFilter("status")}
           >
-            Status ({timeline.filter(e => e.type === 'status_change').length})
+            Status ({timeline.filter((e) => e.type === "status_change").length})
           </button>
-          <button 
-            className={`filter-btn ${filter === 'messages' ? 'active' : ''}`}
-            onClick={() => setFilter('messages')}
+          <button
+            className={`filter-btn ${filter === "messages" ? "active" : ""}`}
+            onClick={() => setFilter("messages")}
           >
-            Messages ({timeline.filter(e => e.type === 'message').length})
+            Messages ({timeline.filter((e) => e.type === "message").length})
           </button>
-          <button 
-            className={`filter-btn ${filter === 'files' ? 'active' : ''}`}
-            onClick={() => setFilter('files')}
+          <button
+            className={`filter-btn ${filter === "files" ? "active" : ""}`}
+            onClick={() => setFilter("files")}
           >
-            Files ({timeline.filter(e => e.type === 'file_upload').length})
+            Files ({timeline.filter((e) => e.type === "file_upload").length})
           </button>
         </div>
       </div>
@@ -292,22 +309,22 @@ const JobTimeline = ({ jobId, job }) => {
         <div className="progress-overview">
           <div className="progress-header">
             <h4>Progress Overview</h4>
-            <span className="progress-percentage">{Math.round(getProgressPercentage())}% Complete</span>
+            <span className="progress-percentage">
+              {Math.round(getProgressPercentage())}% Complete
+            </span>
           </div>
           <div className="progress-bar-container">
             <div className="progress-bar">
-              <div 
+              <div
                 className="progress-fill"
-                style={{ 
+                style={{
                   width: `${getProgressPercentage()}%`,
-                  backgroundColor: getEventColor('status_change', job.status)
+                  backgroundColor: getEventColor("status_change", job.status),
                 }}
               ></div>
             </div>
             {getNextMilestone() && (
-              <div className="next-milestone">
-                Next: {getNextMilestone()}
-              </div>
+              <div className="next-milestone">Next: {getNextMilestone()}</div>
             )}
           </div>
         </div>
@@ -318,19 +335,24 @@ const JobTimeline = ({ jobId, job }) => {
         {filteredTimeline.length === 0 ? (
           <div className="no-timeline-events">
             <div className="no-events-icon">📋</div>
-            <p>No {filter === 'all' ? '' : filter} events yet</p>
+            <p>No {filter === "all" ? "" : filter} events yet</p>
           </div>
         ) : (
           <div className="timeline-events">
             {filteredTimeline.map((event, index) => (
-              <div 
-                key={event._id || index} 
+              <div
+                key={event._id || index}
                 className={`timeline-event ${event.type}`}
               >
                 <div className="event-line">
-                  <div 
+                  <div
                     className="event-dot"
-                    style={{ backgroundColor: getEventColor(event.type, event.newStatus) }}
+                    style={{
+                      backgroundColor: getEventColor(
+                        event.type,
+                        event.newStatus
+                      ),
+                    }}
                   >
                     <span className="event-icon">
                       {getEventIcon(event.type, event.newStatus)}
@@ -340,36 +362,38 @@ const JobTimeline = ({ jobId, job }) => {
                     <div className="event-connector"></div>
                   )}
                 </div>
-                
+
                 <div className="event-content">
                   <div className="event-header">
-                    <h4 className="event-title">
-                      {getEventTitle(event)}
-                    </h4>
+                    <h4 className="event-title">{getEventTitle(event)}</h4>
                     <span className="event-time">
                       {formatDate(event.timestamp)}
                     </span>
                   </div>
-                  
+
                   <div className="event-body">
                     <p className="event-description">
                       {getEventDescription(event)}
                     </p>
-                    
+
                     {event.actor && (
                       <div className="event-actor">
                         <span className="actor-label">by</span>
                         <span className="actor-name">
-                          {event.actor === 'customer' ? 'You' : event.actorName || 'Vendor'}
+                          {event.actor === "customer"
+                            ? "You"
+                            : event.actorName || "Vendor"}
                         </span>
                       </div>
                     )}
-                    
+
                     {event.metadata && (
                       <div className="event-metadata">
                         {event.metadata.estimatedCompletion && (
                           <div className="metadata-item">
-                            <span className="metadata-label">Est. Completion:</span>
+                            <span className="metadata-label">
+                              Est. Completion:
+                            </span>
                             <span className="metadata-value">
                               {formatDate(event.metadata.estimatedCompletion)}
                             </span>
@@ -379,7 +403,10 @@ const JobTimeline = ({ jobId, job }) => {
                           <div className="metadata-item">
                             <span className="metadata-label">File Size:</span>
                             <span className="metadata-value">
-                              {(event.metadata.fileSize / 1024 / 1024).toFixed(2)} MB
+                              {(event.metadata.fileSize / 1024 / 1024).toFixed(
+                                2
+                              )}{" "}
+                              MB
                             </span>
                           </div>
                         )}
@@ -402,13 +429,17 @@ const JobTimeline = ({ jobId, job }) => {
         <div className="stat-item">
           <span className="stat-label">Duration:</span>
           <span className="stat-value">
-            {job && Math.ceil((new Date() - new Date(job.createdAt)) / (1000 * 60 * 60 * 24))} days
+            {job &&
+              Math.ceil(
+                (new Date() - new Date(job.createdAt)) / (1000 * 60 * 60 * 24)
+              )}{" "}
+            days
           </span>
         </div>
         <div className="stat-item">
           <span className="stat-label">Last Activity:</span>
           <span className="stat-value">
-            {timeline.length > 0 ? formatDate(timeline[0].timestamp) : 'None'}
+            {timeline.length > 0 ? formatDate(timeline[0].timestamp) : "None"}
           </span>
         </div>
       </div>
@@ -416,4 +447,4 @@ const JobTimeline = ({ jobId, job }) => {
   );
 };
 
-export default JobTimeline; 
+export default JobTimeline;

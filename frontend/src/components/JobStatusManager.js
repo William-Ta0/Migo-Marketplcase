@@ -1,10 +1,14 @@
+
 import React, { useState } from 'react';
+
 
 const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
+
   const [selectedAction, setSelectedAction] = useState(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
+
 
   const getAvailableActions = () => {
     const actions = [];
@@ -37,6 +41,8 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
           requiresReason: true
         });
       }
+
+
     }
 
     if (job.status === 'accepted') {
@@ -65,36 +71,42 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
   const handleActionClick = (action) => {
     setSelectedAction(action);
     setShowStatusModal(true);
+
     setReason('');
     setError('');
+
   };
 
   const confirmAction = async () => {
     try {
-      setError('');
-      
+      setError("");
+
       // Validation
+
       if (selectedAction.requiresReason && !reason.trim()) {
         setError('Please provide a reason for this action');
         return;
       }
 
       await onStatusUpdate(selectedAction.status, reason.trim());
+
       setShowStatusModal(false);
       setSelectedAction(null);
     } catch (err) {
-      setError('Failed to update status. Please try again.');
+      setError("Failed to update status. Please try again.");
     }
   };
 
   const getStatusColor = (status) => {
     const colors = {
+
       'pending': '#f59e0b',       // Orange
       'accepted': '#10b981',      // Green
       'cancelled': '#ef4444',     // Red
       'completed': '#22c55e'      // Success Green
+
     };
-    return colors[status] || '#6b7280';
+    return colors[status] || "#6b7280";
   };
 
   const getStatusDescription = (status) => {
@@ -108,12 +120,12 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -126,14 +138,16 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
         <div className="current-status-card">
           <h3>Current Status</h3>
           <div className="current-status">
-            <div 
+            <div
               className="status-indicator"
               style={{ backgroundColor: getStatusColor(job.status) }}
             >
+
               {job.status.toUpperCase()}
             </div>
             <div className="status-details">
               <p>{getStatusDescription(job.status)}</p>
+
             </div>
           </div>
         </div>
@@ -143,6 +157,7 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
           <h3>Available Actions</h3>
           {availableActions.length > 0 ? (
             <div className="actions-grid">
+
               {availableActions.map((action, index) => (
                 <button
                   key={index}
@@ -152,12 +167,14 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
                   <div className="action-label">{action.label}</div>
                   <div className="action-description">{action.description}</div>
                 </button>
+
               ))}
             </div>
           ) : (
             <div className="no-actions">
               <p>No actions available at this time.</p>
               <small>
+
                 {job.status === 'completed' || job.status === 'cancelled'
                   ? 'This job has been finalized.'
                   : job.status === 'pending' && isCustomer
@@ -166,21 +183,26 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
                   ? 'Please complete the work. Customer will confirm when done.'
                   : 'Please wait for the other party to take action.'
                 }
+
               </small>
             </div>
           )}
         </div>
 
+
         {/* Job Progress Information */}
+
         <div className="progress-metrics-card">
           <h3>Job Progress</h3>
           <div className="metrics-grid">
             <div className="metric-item">
+
               <label>Created:</label>
               <span>{formatDate(job.createdAt)}</span>
             </div>
             
             {job.status === 'accepted' && (
+
               <div className="metric-item">
                 <label>Accepted:</label>
                 <span>{formatDate(job.updatedAt)}</span>
@@ -195,6 +217,7 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
             )}
             
             <div className="metric-item">
+
               <label>Total Value:</label>
               <span>{new Intl.NumberFormat('en-US', {
                 style: 'currency',
@@ -202,6 +225,7 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               }).format(job.pricing?.amount || 0)}</span>
+
             </div>
           </div>
         </div>
@@ -212,35 +236,43 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
         <div className="modal-overlay">
           <div className="status-modal">
             <div className="modal-header">
+
               <h3>{selectedAction.label}</h3>
               <button 
+
                 className="close-btn"
                 onClick={() => setShowStatusModal(false)}
               >
                 ×
               </button>
             </div>
-            
+
             <div className="modal-content">
               <div className="status-change-summary">
+
                 <p>Are you sure you want to {selectedAction.label.toLowerCase()}?</p>
                 <div 
                   className="new-status-badge"
                   style={{ backgroundColor: selectedAction.color }}
+
                 >
                   {selectedAction.status.toUpperCase()}
                 </div>
+
                 <p className="status-description">{selectedAction.description}</p>
               </div>
 
               {selectedAction.requiresReason && (
                 <div className="form-group">
                   <label htmlFor="reason">Reason (Required):</label>
+
                   <textarea
                     id="reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
+
                     placeholder="Please provide a reason for this action..."
+
                     rows={3}
                   />
                 </div>
@@ -249,18 +281,21 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
               {error && (
                 <div className="error-message">{error}</div>
               )}
+
             </div>
             
             <div className="modal-actions">
-              <button 
+              <button
                 className="btn btn-secondary"
                 onClick={() => setShowStatusModal(false)}
               >
                 Cancel
               </button>
+
               <button 
                 className={`btn ${selectedAction.buttonClass}`}
                 onClick={confirmAction}
+
               >
                 Confirm {selectedAction.label}
               </button>
@@ -272,4 +307,4 @@ const JobStatusManager = ({ job, isVendor, isCustomer, onStatusUpdate }) => {
   );
 };
 
-export default JobStatusManager; 
+export default JobStatusManager;

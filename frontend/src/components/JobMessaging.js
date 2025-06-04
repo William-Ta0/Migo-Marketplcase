@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
 const JobMessaging = ({ job, currentUser, onMessageSend }) => {
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
 
@@ -10,20 +10,20 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
   }, [job.messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
+
     if (!newMessage.trim() || sending) return;
 
     try {
       setSending(true);
       await onMessageSend(newMessage.trim());
-      setNewMessage('');
+      setNewMessage("");
     } catch (err) {
-      console.error('Error sending message:', err);
+      console.error("Error sending message:", err);
     } finally {
       setSending(false);
     }
@@ -35,61 +35,64 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
     const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
     if (diffInDays === 0) {
-      return date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } else if (diffInDays === 1) {
-      return `Yesterday ${date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return `Yesterday ${date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
       })}`;
     } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     }
   };
 
   const getMessageSender = (message) => {
     // Check if sender is current user
-    const isCurrentUser = message.sender._id === currentUser?.uid || 
-                          message.sender.firebaseUid === currentUser?.uid;
-    
+    const isCurrentUser =
+      message.sender._id === currentUser?.uid ||
+      message.sender.firebaseUid === currentUser?.uid;
+
     if (isCurrentUser) {
-      return 'You';
+      return "You";
     }
-    
-    return message.sender.name || 'Unknown User';
+
+    return message.sender.name || "Unknown User";
   };
 
   const isCurrentUserMessage = (message) => {
-    return message.sender._id === currentUser?.uid || 
-           message.sender.firebaseUid === currentUser?.uid;
+    return (
+      message.sender._id === currentUser?.uid ||
+      message.sender.firebaseUid === currentUser?.uid
+    );
   };
 
   const getMessageTypeIcon = (type) => {
     switch (type) {
-      case 'status_update':
-        return '🔄';
-      case 'system':
-        return '⚙️';
+      case "status_update":
+        return "🔄";
+      case "system":
+        return "⚙️";
       default:
-        return '💬';
+        return "💬";
     }
   };
 
   const getMessageTypeClass = (type) => {
     switch (type) {
-      case 'status_update':
-        return 'status-update';
-      case 'system':
-        return 'system-message';
+      case "status_update":
+        return "status-update";
+      case "system":
+        return "system-message";
       default:
-        return 'regular-message';
+        return "regular-message";
     }
   };
 
@@ -106,10 +109,12 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
         <div className="messages-list">
           {job.messages && job.messages.length > 0 ? (
             job.messages.map((message, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`message-item ${getMessageTypeClass(message.type)} ${
-                  isCurrentUserMessage(message) ? 'own-message' : 'other-message'
+                  isCurrentUserMessage(message)
+                    ? "own-message"
+                    : "other-message"
                 }`}
               >
                 <div className="message-header">
@@ -125,15 +130,13 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
                     {formatMessageDate(message.timestamp)}
                   </div>
                 </div>
-                
+
                 <div className="message-content">
                   <p>{message.message}</p>
                 </div>
 
-                {message.type === 'status_update' && (
-                  <div className="status-update-badge">
-                    Status Update
-                  </div>
+                {message.type === "status_update" && (
+                  <div className="status-update-badge">Status Update</div>
                 )}
               </div>
             ))
@@ -158,13 +161,13 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
                 rows={3}
                 disabled={sending}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage(e);
                   }
                 }}
               />
-              <button 
+              <button
                 type="submit"
                 className="send-button"
                 disabled={!newMessage.trim() || sending}
@@ -177,7 +180,11 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
                 ) : (
                   <span>
                     Send
-                    <svg className="send-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      className="send-icon"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
                     </svg>
                   </span>
@@ -194,30 +201,42 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
         <div className="quick-actions">
           <h4>Quick Messages</h4>
           <div className="quick-actions-grid">
-            <button 
+            <button
               className="quick-action-btn"
-              onClick={() => setNewMessage('Could you please provide an update on the progress?')}
+              onClick={() =>
+                setNewMessage(
+                  "Could you please provide an update on the progress?"
+                )
+              }
               disabled={sending}
             >
               Request Update
             </button>
-            <button 
+            <button
               className="quick-action-btn"
-              onClick={() => setNewMessage('Thank you for the update. Everything looks good!')}
+              onClick={() =>
+                setNewMessage(
+                  "Thank you for the update. Everything looks good!"
+                )
+              }
               disabled={sending}
             >
               Acknowledge
             </button>
-            <button 
+            <button
               className="quick-action-btn"
-              onClick={() => setNewMessage('I have a question about the requirements...')}
+              onClick={() =>
+                setNewMessage("I have a question about the requirements...")
+              }
               disabled={sending}
             >
               Ask Question
             </button>
-            <button 
+            <button
               className="quick-action-btn"
-              onClick={() => setNewMessage('When can we schedule a call to discuss this?')}
+              onClick={() =>
+                setNewMessage("When can we schedule a call to discuss this?")
+              }
               disabled={sending}
             >
               Schedule Call
@@ -240,4 +259,4 @@ const JobMessaging = ({ job, currentUser, onMessageSend }) => {
   );
 };
 
-export default JobMessaging; 
+export default JobMessaging;
