@@ -6,6 +6,7 @@ import {
   Marker, // Deprecated, use google.maps.marker.AdvancedMarkerElement instead
   // AdvancedMarkerElement, // TODO: Move to AdvancedMarkerElement in future updates
 } from "@react-google-maps/api";
+import { serviceTypes } from "../constants/serviceTypes";
 
 // NOTE: Google Maps API isn't providing phone numbers in search results currently
 // TODO: Add a feature to fetch phone numbers using Place Details API if needed
@@ -162,20 +163,18 @@ function MapPage() {
         </GoogleMap>
       </LoadScript>
       <div style={{ marginBottom: "20px" }}>
-        <label htmlFor="business-type">Select Business Type:</label>
+        <label htmlFor="serviceType">Select Service Type:</label>
         <select
-          id="business-type"
+          id="serviceType"
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
           style={{ marginLeft: "10px", padding: "5px" }}
         >
-          <option value="caterer">Caterer</option>
-          <option value="baker">Baker</option>
-          <option value="painter">Painter</option>
-          <option value="photographer">Photographer</option>
-          <option value="dj">DJ</option>
-          <option value="mechanic">Mechanic</option>
-          <option value="electrician">Electrician</option>
+          {serviceTypes.map((type, index) => (
+            <option key={index} value={type.toLowerCase()}>
+              {type}
+            </option>
+          ))}
         </select>
         <button
           onClick={handleSearch}
