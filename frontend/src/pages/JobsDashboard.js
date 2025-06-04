@@ -19,13 +19,13 @@ const JobsDashboard = () => {
 
   // Filter options for the new UI (same as customer dashboard)
   const filterOptions = [
-    { key: "all", label: "All Jobs" },
-    { key: "pending", label: "Pending" },
-    { key: "reviewing", label: "Reviewing" },
-    { key: "confirmed", label: "Confirmed" },
-    { key: "in_progress", label: "In Progress" },
-    { key: "completed", label: "Completed" },
-    { key: "cancelled", label: "Cancelled" },
+
+    { key: 'all', label: 'All Jobs' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'accepted', label: 'Accepted' },
+    { key: 'completed', label: 'Completed' },
+    { key: 'cancelled', label: 'Cancelled' },
+
   ];
 
   useEffect(() => {
@@ -139,7 +139,12 @@ const JobsDashboard = () => {
 
   const formatPrice = (job) => {
     const amount = job.selectedPackage?.price || job.pricing?.amount || 0;
-    return `$${amount}`;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
   };
 
   const handleQuickStatusUpdate = async (jobId, newStatus) => {
@@ -156,13 +161,11 @@ const JobsDashboard = () => {
 
   // Calculate statistics with proper exclusions
   const calculatedStats = useMemo(() => {
-    const activeJobs = jobs.filter(
-      (job) => job.status === "in_progress" || job.status === "confirmed"
-    );
-    const pendingJobs = jobs.filter(
-      (job) => job.status === "pending" || job.status === "reviewing"
-    );
-    const completedJobs = jobs.filter((job) => job.status === "completed");
+
+    const activeJobs = jobs.filter(job => job.status === 'accepted');
+    const pendingJobs = jobs.filter(job => job.status === 'pending');
+    const completedJobs = jobs.filter(job => job.status === 'completed');
+    
 
     // Exclude cancelled jobs from total revenue calculation
     const revenueJobs = jobs.filter((job) => job.status !== "cancelled");
@@ -240,7 +243,12 @@ const JobsDashboard = () => {
           <div className="stat-card">
             <div className="stat-icon">💰</div>
             <div className="stat-info">
-              <h3>${calculatedStats.totalRevenue || 0}</h3>
+              <h3>{new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }).format(calculatedStats.totalRevenue || 0)}</h3>
               <p>Total Value</p>
             </div>
           </div>
@@ -256,7 +264,7 @@ const JobsDashboard = () => {
                   activeFilter === filter.key ? "active" : ""
                 }`}
                 onClick={() => handleFilterTabChange(filter.key)}
-              >
+            >
                 {filter.label}
               </button>
             ))}
@@ -303,22 +311,21 @@ const JobsDashboard = () => {
                         Job #{job.jobNumber || job._id.slice(-8)}
                       </p>
                     </div>
-                    <div
-                      className="job-status"
-                      style={{ backgroundColor: getStatusColor(job.status) }}
-                    >
-                      {getStatusText(job.status)}
+
+                    <div className={`status-badge status-${job.status}`}>
+                      {job.status.toUpperCase()}
+
                     </div>
                   </div>
 
                   <div className="job-details">
                     <div className="job-parties">
-                      <div className="party-info">
-                        <span className="label">Customer:</span>
-                        <div className="party">
-                          <span>
-                            {job.customer?.name || "Unknown Customer"}
-                          </span>
+
+                        <div className="party-info">
+                          <span className="label">Customer:</span>
+                          <div className="party">
+                          <span>{job.customer?.name || 'Unknown Customer'}</span>
+
                         </div>
                       </div>
                     </div>
@@ -369,58 +376,29 @@ const JobsDashboard = () => {
                         >
                           Accept
                         </button>
-                        <button
-                          className="btn btn-info"
-                          onClick={() =>
-                            handleQuickStatusUpdate(job._id, "reviewing")
-                          }
-                        >
-                          Review
-                        </button>
-                        <button
+
+                        <button 
                           className="btn btn-danger"
-                          onClick={() =>
-                            handleQuickStatusUpdate(job._id, "rejected")
-                          }
+                          onClick={() => handleQuickStatusUpdate(job._id, 'cancelled')}
+
                         >
-                          Decline
+                          Cancel
                         </button>
                       </div>
                     )}
 
-                    {job.status === "confirmed" && (
-                      <button
-                        className="btn btn-success"
-                        onClick={() =>
-                          handleQuickStatusUpdate(job._id, "in_progress")
-                        }
-                      >
-                        Start Work
-                      </button>
+                    
+                    {job.status === 'accepted' && (
+                      <div className="vendor-accepted-actions">
+                        <p className="status-note">Work in progress. Customer will confirm when done.</p>
+                      </div>
                     )}
+                    
+                    {(job.status === 'completed' || job.status === 'cancelled') && (
+                      <div className="job-final-status">
+                        <p className="status-note">Job {job.status}</p>
+                      </div>
 
-                    {job.status === "in_progress" && (
-                      <button
-                        className="btn btn-success"
-                        onClick={() =>
-                          handleQuickStatusUpdate(job._id, "completed")
-                        }
-                      >
-                        Mark Complete
-                      </button>
-                    )}
-
-                    {["pending", "reviewing", "accepted"].includes(
-                      job.status
-                    ) && (
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() =>
-                          handleQuickStatusUpdate(job._id, "cancelled")
-                        }
-                      >
-                        Cancel
-                      </button>
                     )}
                   </div>
                 </div>
