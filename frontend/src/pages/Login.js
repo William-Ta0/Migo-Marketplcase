@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import '../styles/AuthForms.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import "../styles/AuthForms.css";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { login, googleLogin, continueAsGuest, getUserRole } = useAuth();
@@ -16,32 +16,32 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      setError('');
+      setError("");
       setLoading(true);
       const userCredential = await login(email, password);
       const role = await getUserRole(userCredential.user.uid);
 
       // Redirect based on role
       if (!role) {
-        navigate('/select-role');
+        navigate("/select-role");
       } else {
         switch (role) {
-          case 'customer':
-            navigate('/');
+          case "customer":
+            navigate("/");
             break;
-          case 'vendor':
-            navigate('/profile');
+          case "vendor":
+            navigate("/profile");
             break;
-          case 'admin':
-            navigate('/admin');
+          case "admin":
+            navigate("/admin");
             break;
           default:
-            navigate('/');
+            navigate("/");
         }
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Failed to sign in');
+      console.error("Login error:", err);
+      setError("Failed to sign in");
     } finally {
       setLoading(false);
     }
@@ -49,32 +49,32 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      setError('');
+      setError("");
       setLoading(true);
       const userCredential = await googleLogin();
       const role = await getUserRole(userCredential.uid);
 
       // Redirect based on role
       if (!role) {
-        navigate('/select-role');
+        navigate("/select-role");
       } else {
         switch (role) {
-          case 'customer':
-            navigate('/');
+          case "customer":
+            navigate("/");
             break;
-          case 'vendor':
-            navigate('/profile');
+          case "vendor":
+            navigate("/profile");
             break;
-          case 'admin':
-            navigate('/admin');
+          case "admin":
+            navigate("/admin");
             break;
           default:
-            navigate('/');
+            navigate("/");
         }
       }
     } catch (err) {
-      console.error('Google login error:', err);
-      setError('Failed to sign in with Google');
+      console.error("Google login error:", err);
+      setError("Failed to sign in with Google");
     } finally {
       setLoading(false);
     }
@@ -82,13 +82,13 @@ const Login = () => {
 
   const handleContinueAsGuest = async () => {
     try {
-      setError('');
+      setError("");
       setLoading(true);
       await continueAsGuest();
-      navigate('/');
+      navigate("/");
     } catch (err) {
-      console.error('Guest login error:', err);
-      setError('Failed to continue as guest');
+      console.error("Guest login error:", err);
+      setError("Failed to continue as guest");
     } finally {
       setLoading(false);
     }

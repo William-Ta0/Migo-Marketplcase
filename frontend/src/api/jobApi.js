@@ -1,18 +1,19 @@
-import { auth } from '../firebase/config';
+import { auth } from "../firebase/config";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5001/api";
 
 // Helper function to get auth headers
 const getAuthHeaders = async () => {
   const user = auth.currentUser;
   if (!user) {
-    throw new Error('No authenticated user found');
+    throw new Error("No authenticated user found");
   }
-  
+
   const token = await user.getIdToken();
   return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
   };
 };
 
@@ -20,12 +21,12 @@ const getAuthHeaders = async () => {
 const getFileUploadHeaders = async () => {
   const user = auth.currentUser;
   if (!user) {
-    throw new Error('No authenticated user found');
+    throw new Error("No authenticated user found");
   }
-  
+
   const token = await user.getIdToken();
   return {
-    'Authorization': `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   };
 };
 
@@ -34,20 +35,20 @@ export const createJob = async (jobData) => {
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs`, {
-      method: 'POST',
+      method: "POST",
       headers,
-      body: JSON.stringify(jobData)
+      body: JSON.stringify(jobData),
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to create booking');
+      throw new Error(data.message || "Failed to create booking");
     }
 
     return data;
   } catch (error) {
-    console.error('Error creating job:', error);
+    console.error("Error creating job:", error);
     throw error;
   }
 };
@@ -56,33 +57,37 @@ export const createJob = async (jobData) => {
 export const getJobs = async (params = {}) => {
   try {
     const queryParams = new URLSearchParams();
-    
+
     // Add parameters
-    Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+    Object.keys(params).forEach((key) => {
+      if (
+        params[key] !== undefined &&
+        params[key] !== null &&
+        params[key] !== ""
+      ) {
         queryParams.append(key, params[key]);
       }
     });
 
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs?${queryParams}`, {
-      method: 'GET',
-      headers
+      method: "GET",
+      headers,
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch jobs');
+      throw new Error(data.message || "Failed to fetch jobs");
     }
 
     // Return consistent format
     return {
       success: true,
-      data: data.data || data // Handle both formats
+      data: data.data || data, // Handle both formats
     };
   } catch (error) {
-    console.error('Error fetching jobs:', error);
+    console.error("Error fetching jobs:", error);
     throw error;
   }
 };
@@ -92,44 +97,49 @@ export const getJobById = async (jobId) => {
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
-      method: 'GET',
-      headers
+      method: "GET",
+      headers,
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch job details');
+      throw new Error(data.message || "Failed to fetch job details");
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching job details:', error);
+    console.error("Error fetching job details:", error);
     throw error;
   }
 };
 
 // Update job status
-export const updateJobStatus = async (jobId, status, reason = '', additionalData = {}) => {
+export const updateJobStatus = async (
+  jobId,
+  status,
+  reason = "",
+  additionalData = {}
+) => {
   try {
     const requestBody = { status, reason, ...additionalData };
     const headers = await getAuthHeaders();
-    
+
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/status`, {
-      method: 'PUT',
+      method: "PUT",
       headers,
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to update job status');
+      throw new Error(data.message || "Failed to update job status");
     }
 
     return data;
   } catch (error) {
-    console.error('Error updating job status:', error);
+    console.error("Error updating job status:", error);
     throw error;
   }
 };
@@ -139,20 +149,20 @@ export const addJobMessage = async (jobId, message) => {
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/messages`, {
-      method: 'POST',
+      method: "POST",
       headers,
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ message }),
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to send message');
+      throw new Error(data.message || "Failed to send message");
     }
 
     return data;
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error("Error sending message:", error);
     throw error;
   }
 };
@@ -161,50 +171,50 @@ export const addJobMessage = async (jobId, message) => {
 export const uploadJobFile = async (jobId, file) => {
   try {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     const headers = await getFileUploadHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/upload`, {
-      method: 'POST',
+      method: "POST",
       headers,
-      body: formData
+      body: formData,
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to upload file');
+      throw new Error(data.message || "Failed to upload file");
     }
 
     return data;
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error("Error uploading file:", error);
     throw error;
   }
 };
 
 // Get job statistics
-export const getJobStats = async (role = 'customer') => {
+export const getJobStats = async (role = "customer") => {
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/stats?role=${role}`, {
-      method: 'GET',
-      headers
+      method: "GET",
+      headers,
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch job statistics');
+      throw new Error(data.message || "Failed to fetch job statistics");
     }
 
     // Return consistent format
     return {
       success: true,
-      data: data.data || data // Handle both formats
+      data: data.data || data, // Handle both formats
     };
   } catch (error) {
-    console.error('Error fetching job statistics:', error);
+    console.error("Error fetching job statistics:", error);
     throw error;
   }
 };
@@ -214,19 +224,19 @@ export const getJobStatusTransitions = async (jobId) => {
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/transitions`, {
-      method: 'GET',
-      headers
+      method: "GET",
+      headers,
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch job status transitions');
+      throw new Error(data.message || "Failed to fetch job status transitions");
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching job status transitions:', error);
+    console.error("Error fetching job status transitions:", error);
     throw error;
   }
 };
@@ -236,19 +246,19 @@ export const getJobTimeline = async (jobId) => {
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}/jobs/${jobId}/timeline`, {
-      method: 'GET',
-      headers
+      method: "GET",
+      headers,
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch job timeline');
+      throw new Error(data.message || "Failed to fetch job timeline");
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching job timeline:', error);
+    console.error("Error fetching job timeline:", error);
     throw error;
   }
-}; 
+};

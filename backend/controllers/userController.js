@@ -1,26 +1,33 @@
-const User = require('../models/User');
-const admin = require('../config/firebaseAdmin');
-const multer = require('multer');
-const path = require('path');
+const User = require("../models/User");
+const admin = require("../config/firebaseAdmin");
+const multer = require("multer");
+const path = require("path");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/avatars/');
+    cb(null, "uploads/avatars/");
   },
   filename: function (req, file, cb) {
     // Generate unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'avatar-' + req.user.uid + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(
+      null,
+      "avatar-" +
+        req.user.uid +
+        "-" +
+        uniqueSuffix +
+        path.extname(file.originalname)
+    );
+  },
 });
 
 const fileFilter = (req, file, cb) => {
   // Accept only image files
-  if (file.mimetype.startsWith('image/')) {
+  if (file.mimetype.startsWith("image/")) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed!'), false);
+    cb(new Error("Only image files are allowed!"), false);
   }
 };
 
@@ -29,7 +36,7 @@ const upload = multer({
   fileFilter: fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
-  }
+  },
 });
 
 // @desc    Register a new user
@@ -41,13 +48,13 @@ const registerUser = async (req, res) => {
 
     // Verify that the Firebase UID matches the token
     if (firebaseUid !== req.user.uid) {
-      return res.status(403).json({ error: 'Unauthorized' });
+      return res.status(403).json({ error: "Unauthorized" });
     }
 
     // Check if user already exists
     let user = await User.findOne({ firebaseUid });
     if (user) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: "User already exists" });
     }
 
     // Create new user
@@ -62,8 +69,8 @@ const registerUser = async (req, res) => {
     await user.save();
     res.status(201).json(user);
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ error: 'Error registering user' });
+    console.error("Error registering user:", error);
+    res.status(500).json({ error: "Error registering user" });
   }
 };
 
@@ -74,12 +81,12 @@ const getUserProfile = async (req, res) => {
   try {
     const user = await User.findOne({ firebaseUid: req.user.uid });
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
     res.json(user);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Error fetching user profile' });
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ error: "Error fetching user profile" });
   }
 };
 
@@ -94,18 +101,37 @@ const updateUserProfile = async (req, res) => {
       // Update basic fields
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
-      user.phoneNumber = req.body.phoneNumber !== undefined ? req.body.phoneNumber : user.phoneNumber;
+      user.phoneNumber =
+        req.body.phoneNumber !== undefined
+          ? req.body.phoneNumber
+          : user.phoneNumber;
       user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
-      user.avatar = req.body.avatar !== undefined ? req.body.avatar : user.avatar;
+      user.avatar =
+        req.body.avatar !== undefined ? req.body.avatar : user.avatar;
 
       // Update address fields
       if (req.body.address) {
         user.address = {
-          street: req.body.address.street !== undefined ? req.body.address.street : user.address.street,
-          city: req.body.address.city !== undefined ? req.body.address.city : user.address.city,
-          state: req.body.address.state !== undefined ? req.body.address.state : user.address.state,
-          zipCode: req.body.address.zipCode !== undefined ? req.body.address.zipCode : user.address.zipCode,
-          country: req.body.address.country !== undefined ? req.body.address.country : user.address.country,
+          street:
+            req.body.address.street !== undefined
+              ? req.body.address.street
+              : user.address.street,
+          city:
+            req.body.address.city !== undefined
+              ? req.body.address.city
+              : user.address.city,
+          state:
+            req.body.address.state !== undefined
+              ? req.body.address.state
+              : user.address.state,
+          zipCode:
+            req.body.address.zipCode !== undefined
+              ? req.body.address.zipCode
+              : user.address.zipCode,
+          country:
+            req.body.address.country !== undefined
+              ? req.body.address.country
+              : user.address.country,
         };
       }
 
@@ -123,7 +149,7 @@ const updateUserProfile = async (req, res) => {
       });
     } else {
       res.status(404);
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
   } catch (error) {
     res.status(400);
@@ -137,9 +163,9 @@ const updateUserRole = async (req, res) => {
     const { role } = req.body;
 
     // Validate role
-    const validRoles = ['customer', 'vendor', 'admin'];
+    const validRoles = ["customer", "vendor", "admin"];
     if (!validRoles.includes(role)) {
-      return res.status(400).json({ error: 'Invalid role' });
+      return res.status(400).json({ error: "Invalid role" });
     }
 
     // Find and update user
@@ -150,13 +176,13 @@ const updateUserRole = async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json(user);
   } catch (error) {
-    console.error('Error updating user role:', error);
-    res.status(500).json({ error: 'Error updating user role' });
+    console.error("Error updating user role:", error);
+    res.status(500).json({ error: "Error updating user role" });
   }
 };
 
@@ -170,7 +196,7 @@ const deleteUser = async (req, res) => {
     // Find user in MongoDB
     const user = await User.findOne({ firebaseUid });
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Delete user from Firebase Auth
@@ -181,10 +207,10 @@ const deleteUser = async (req, res) => {
 
     // Note: Add any additional cleanup here (e.g., user's posts, comments, etc.)
 
-    res.json({ message: 'Account deleted successfully' });
+    res.json({ message: "Account deleted successfully" });
   } catch (error) {
-    console.error('Error deleting user account:', error);
-    res.status(500).json({ error: 'Error deleting user account' });
+    console.error("Error deleting user account:", error);
+    res.status(500).json({ error: "Error deleting user account" });
   }
 };
 
@@ -194,7 +220,7 @@ const deleteUser = async (req, res) => {
 const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: "No file uploaded" });
     }
 
     // Update user's avatar field in database
@@ -205,16 +231,16 @@ const uploadAvatar = async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json({
-      message: 'Avatar uploaded successfully',
-      avatar: user.avatar
+      message: "Avatar uploaded successfully",
+      avatar: user.avatar,
     });
   } catch (error) {
-    console.error('Error uploading avatar:', error);
-    res.status(500).json({ error: 'Error uploading avatar' });
+    console.error("Error uploading avatar:", error);
+    res.status(500).json({ error: "Error uploading avatar" });
   }
 };
 
@@ -226,4 +252,4 @@ module.exports = {
   deleteUser,
   uploadAvatar,
   upload,
-}; 
+};

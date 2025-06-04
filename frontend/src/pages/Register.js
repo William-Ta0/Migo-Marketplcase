@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import '../styles/AuthForms.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import "../styles/AuthForms.css";
 
 const Register = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const { register, googleLogin } = useAuth();
   const navigate = useNavigate();
 
@@ -18,17 +18,17 @@ const Register = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      return setError('Passwords do not match');
+      return setError("Passwords do not match");
     }
 
     try {
-      setError('');
+      setError("");
       setLoading(true);
       await register(name, email, password);
-      navigate('/select-role');
+      navigate("/select-role");
     } catch (err) {
-      console.error('Registration error:', err);
-      setError('Failed to create an account');
+      console.error("Registration error:", err);
+      setError("Failed to create an account");
     } finally {
       setLoading(false);
     }
@@ -36,13 +36,13 @@ const Register = () => {
 
   const handleGoogleSignup = async () => {
     try {
-      setError('');
+      setError("");
       setLoading(true);
       await googleLogin();
-      navigate('/select-role');
+      navigate("/select-role");
     } catch (err) {
-      console.error('Google signup error:', err);
-      setError('Failed to sign up with Google');
+      console.error("Google signup error:", err);
+      setError("Failed to sign up with Google");
     } finally {
       setLoading(false);
     }
@@ -53,7 +53,7 @@ const Register = () => {
       <div className="auth-form-container">
         <h2>Create your account</h2>
         {error && <div className="auth-error">{error}</div>}
-        
+
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label>Name</label>
@@ -120,4 +120,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;
