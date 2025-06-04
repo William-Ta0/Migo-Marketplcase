@@ -13,6 +13,8 @@ const AskMigo = () => {
   const [userInput, setUserInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [guidedStep, setGuidedStep] = useState(0);
+  const [selectedService, setSelectedService] = useState("");
+  const [mapResults, setMapResults] = useState([]);
 
   // Only offering in person services
   const currentServices = serviceTypes;
@@ -33,17 +35,6 @@ const AskMigo = () => {
     { name: "Move It Movers", service: "Moving Services" },
     { name: "Pet Pals", service: "Pet Care" },
     { name: "Tutor Time", service: "Tutoring" },
-  ];
-
-  const guidedQuestions = [
-    {
-      question: "What kind of service are you looking for?",
-      options: currentServices,
-    },
-    {
-      question: "Do you have a specific service in mind?",
-      options: ["Yes", "No"],
-    },
   ];
 
   const handleInputChange = (e) => {
@@ -82,6 +73,7 @@ const AskMigo = () => {
 
     try {
       const searchResults = await handleSearch(selectedService);
+      setMapResults(searchResults);
       const searchMessage = {
         sender: "bot",
         text: `Other businesses found offering ${selectedService}: ${searchResults
@@ -89,6 +81,7 @@ const AskMigo = () => {
           .join(", ")}`,
       };
       setMessages((prevMessages) => [...prevMessages, searchMessage]);
+      return searchResults;
     } catch (error) {
       console.error("Error searching for businesses:", error);
       const errorMessage = {
@@ -96,23 +89,40 @@ const AskMigo = () => {
         text: "Sorry, we couldn't find additional businesses at this time.",
       };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      return [];
     }
   };
 
-  const handleOptionSelect = (option) => {
+  const handleOptionSelect = async (option) => {
     const userMessage = { sender: "user", text: option };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
     if (guidedStep === 0) {
+      setSelectedService(option);
       recommendServices(option);
-      recommendBusinesses(option);
+      await recommendBusinesses(option);
+      setGuidedStep(1);
+      return;
     }
-
-    if (guidedStep < guidedQuestions.length - 1) {
-      setGuidedStep(guidedStep + 1);
-    } else {
-      // Transition to free-form chat
+    if (guidedStep === 1) {
+      const business = option;
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.0-flash",
+          contents: `You are ${business}, a ${selectedService} provider located at Santa Clara University. Please provide a quote and any additional information as a business owner to a potential client.`,
+        });
+        const botMessage = { sender: "bot", text: response.text };
+        setMessages((prev) => [...prev, botMessage]);
+      } catch (error) {
+        console.error("Error interacting with Gemini API:", error);
+        const errorMsg = {
+          sender: "bot",
+          text: "Sorry, we couldn't process your request. Please try again later.",
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      }
       setGuidedStep(-1);
+      return;
     }
   };
 
@@ -157,6 +167,14 @@ const AskMigo = () => {
     setGuidedStep(0);
   };
 
+  // prepare dynamic business options after selection
+  const dummyBusinessNames = santaClaraBusinesses
+    .filter((b) => b.service === selectedService)
+    .map((b) => b.name);
+  const businessOptions = [
+    ...new Set([...dummyBusinessNames, ...mapResults.map((r) => r.name)]),
+  ];
+
   return (
     <div className="ask-migo-container">
       <h1>Ask Migo</h1>
@@ -172,13 +190,31 @@ const AskMigo = () => {
           </div>
         ))}
 
-        {guidedStep >= 0 && (
+        {guidedStep === 0 && (
           <div className="guided-question">
-            <p>{guidedQuestions[guidedStep].question}</p>
+            <p>What kind of service are you looking for?</p>
             <div className="options">
-              {guidedQuestions[guidedStep].options.map((option, index) => (
+              {currentServices.map((option, idx) => (
                 <button
-                  key={index}
+                  key={idx}
+                  onClick={() => handleOptionSelect(option)}
+                  className="option-button"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {guidedStep === 1 && (
+          <div className="guided-question">
+            <p>
+              Which business would you like to contact for {selectedService}?
+            </p>
+            <div className="options">
+              {businessOptions.map((option, idx) => (
+                <button
+                  key={idx}
                   onClick={() => handleOptionSelect(option)}
                   className="option-button"
                 >
