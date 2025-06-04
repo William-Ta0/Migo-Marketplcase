@@ -1,25 +1,25 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import Header from './components/Header';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import RoleSelection from './pages/RoleSelection';
-import Profile from './pages/Profile';
-import VendorOnboarding from './pages/VendorOnboarding';
-import CreateService from './pages/CreateService';
-import ItemDetails from './pages/ItemDetails';
-import CategoryBrowser from './pages/CategoryBrowser';
-import ServicesByCategory from './pages/ServicesByCategory';
-import ServiceDetail from './pages/ServiceDetail';
-import ServicesSearch from './pages/ServicesSearch';
-import JobsDashboard from './pages/JobsDashboard';
-import JobDetail from './pages/JobDetail';
-import CustomerJobTracker from './components/CustomerJobTracker';
-import RoleBasedJobsRedirect from './components/RoleBasedJobsRedirect';
-import PrivateRoute from './components/PrivateRoute';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import Header from "./components/Header";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import RoleSelection from "./pages/RoleSelection";
+import Profile from "./pages/Profile";
+import VendorOnboarding from "./pages/VendorOnboarding";
+import CreateService from "./pages/CreateService";
+import ItemDetails from "./pages/ItemDetails";
+import CategoryBrowser from "./pages/CategoryBrowser";
+import ServicesByCategory from "./pages/ServicesByCategory";
+import ServiceDetail from "./pages/ServiceDetail";
+import ServicesSearch from "./pages/ServicesSearch";
+import JobsDashboard from "./pages/JobsDashboard";
+import JobDetail from "./pages/JobDetail";
+import CustomerJobTracker from "./components/CustomerJobTracker";
+import RoleBasedJobsRedirect from "./components/RoleBasedJobsRedirect";
+import PrivateRoute from "./components/PrivateRoute";
+import "./App.css";
 
 function App() {
   return (
@@ -34,9 +34,12 @@ function App() {
             <Route path="/select-role" element={<RoleSelection />} />
             <Route path="/categories" element={<CategoryBrowser />} />
             <Route path="/services" element={<ServicesSearch />} />
-            <Route path="/services/category/:slug" element={<ServicesByCategory />} />
+            <Route
+              path="/services/category/:slug"
+              element={<ServicesByCategory />}
+            />
             <Route path="/services/:id" element={<ServiceDetail />} />
-            
+
             {/* Protected routes */}
             <Route
               path="/"
@@ -46,7 +49,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             {/* Profile route - accessible to all authenticated users */}
             <Route
               path="/profile"
@@ -56,7 +59,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             {/* Jobs redirect - role-based routing */}
             <Route
               path="/jobs"
@@ -66,7 +69,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             {/* Customer Job Tracker - enhanced tracking for customers */}
             <Route
               path="/my-jobs"
@@ -76,7 +79,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             {/* Vendor Jobs Dashboard */}
             <Route
               path="/vendor/jobs"
@@ -86,7 +89,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             {/* Customer routes */}
             <Route
               path="/items/:id"
@@ -96,7 +99,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             {/* Vendor routes */}
             <Route
               path="/vendor/onboarding"
@@ -114,7 +117,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             {/* Admin routes */}
             <Route
               path="/admin/*"
@@ -124,7 +127,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            
+
             {/* Job Detail route */}
             <Route
               path="/jobs/:id"

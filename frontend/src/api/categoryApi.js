@@ -1,9 +1,11 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Use environment-specific API URLs
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? process.env.REACT_APP_API_URL || 'https://your-backend-url.com/api/categories'
-  : 'http://localhost:5001/api/categories';
+const API_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.REACT_APP_API_URL ||
+      "https://your-backend-url.com/api/categories"
+    : "http://localhost:5001/api/categories";
 
 // Get all categories
 export const getCategories = async (params = {}) => {
@@ -13,7 +15,7 @@ export const getCategories = async (params = {}) => {
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.error("Error fetching categories:", error);
     throw error;
   }
 };
@@ -47,7 +49,7 @@ export const searchCategories = async (query, limit = 20) => {
     const response = await axios.get(`${API_URL}/search?${params}`);
     return response.data;
   } catch (error) {
-    console.error('Error searching categories:', error);
+    console.error("Error searching categories:", error);
     throw error;
   }
 };
@@ -58,7 +60,7 @@ export const getCategoryStats = async () => {
     const response = await axios.get(`${API_URL}/stats`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching category stats:', error);
+    console.error("Error fetching category stats:", error);
     throw error;
   }
 };
@@ -69,7 +71,7 @@ export const seedCategories = async () => {
     const response = await axios.post(`${API_URL}/seed`);
     return response.data;
   } catch (error) {
-    console.error('Error seeding categories:', error);
+    console.error("Error seeding categories:", error);
     throw error;
   }
-}; 
+};

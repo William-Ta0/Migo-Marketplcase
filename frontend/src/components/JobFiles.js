@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -7,9 +7,9 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   };
@@ -18,7 +18,7 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileUpload(e.dataTransfer.files[0]);
     }
@@ -35,7 +35,7 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
 
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB');
+      alert("File size must be less than 10MB");
       return;
     }
 
@@ -43,39 +43,39 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
       setUploading(true);
       await onFileUpload(file);
     } catch (err) {
-      console.error('Error uploading file:', err);
+      console.error("Error uploading file:", err);
     } finally {
       setUploading(false);
     }
   };
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const getFileTypeIcon = (type) => {
-    const fileType = type?.toLowerCase() || '';
-    
-    if (fileType.includes('image')) return '🖼️';
-    if (fileType.includes('pdf')) return '📄';
-    if (fileType.includes('word') || fileType.includes('doc')) return '📝';
-    if (fileType.includes('excel') || fileType.includes('sheet')) return '📊';
-    if (fileType.includes('video')) return '🎥';
-    if (fileType.includes('audio')) return '🎵';
-    return '📎';
+    const fileType = type?.toLowerCase() || "";
+
+    if (fileType.includes("image")) return "🖼️";
+    if (fileType.includes("pdf")) return "📄";
+    if (fileType.includes("word") || fileType.includes("doc")) return "📝";
+    if (fileType.includes("excel") || fileType.includes("sheet")) return "📊";
+    if (fileType.includes("video")) return "🎥";
+    if (fileType.includes("audio")) return "🎵";
+    return "📎";
   };
 
   const formatUploadDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -85,8 +85,10 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
         {/* Upload Section */}
         <div className="upload-section">
           <h3>Upload Files</h3>
-          <div 
-            className={`upload-area ${dragActive ? 'drag-active' : ''} ${uploading ? 'uploading' : ''}`}
+          <div
+            className={`upload-area ${dragActive ? "drag-active" : ""} ${
+              uploading ? "uploading" : ""
+            }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -109,9 +111,7 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
                   accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt,.xlsx,.xls"
                   disabled={uploading}
                 />
-                <button className="upload-btn">
-                  Choose File
-                </button>
+                <button className="upload-btn">Choose File</button>
               </>
             )}
           </div>
@@ -139,14 +139,14 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
                         </span>
                       </div>
                       <div className="uploaded-by">
-                        Uploaded by: {file.uploadedBy?.name || 'Unknown'}
+                        Uploaded by: {file.uploadedBy?.name || "Unknown"}
                       </div>
                     </div>
                   </div>
                   <div className="file-actions">
-                    <a 
-                      href={file.url} 
-                      target="_blank" 
+                    <a
+                      href={file.url}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-primary btn-sm"
                     >
@@ -176,24 +176,31 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
                   {job.deliverables.map((deliverable, index) => (
                     <li key={index} className="deliverable-item">
                       <span className="deliverable-text">{deliverable}</span>
-                      <span className="deliverable-status pending">Pending</span>
+                      <span className="deliverable-status pending">
+                        Pending
+                      </span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="no-deliverables">No specific deliverables defined</p>
+                <p className="no-deliverables">
+                  No specific deliverables defined
+                </p>
               )}
             </div>
 
             {/* Completed Deliverables */}
             <div className="completed-deliverables">
               <h4>Completed Deliverables</h4>
-              {job.completedDeliverables && job.completedDeliverables.length > 0 ? (
+              {job.completedDeliverables &&
+              job.completedDeliverables.length > 0 ? (
                 <div className="completed-list">
                   {job.completedDeliverables.map((deliverable, index) => (
                     <div key={index} className="completed-item">
                       <div className="completed-header">
-                        <span className="completed-name">{deliverable.name}</span>
+                        <span className="completed-name">
+                          {deliverable.name}
+                        </span>
                         <span className="completed-date">
                           {formatUploadDate(deliverable.completedAt)}
                         </span>
@@ -206,10 +213,10 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
                       {deliverable.files && deliverable.files.length > 0 && (
                         <div className="completed-files">
                           {deliverable.files.map((file, fileIndex) => (
-                            <a 
+                            <a
                               key={fileIndex}
-                              href={file.url} 
-                              target="_blank" 
+                              href={file.url}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="completed-file-link"
                             >
@@ -233,8 +240,13 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
           <h4>File Upload Guidelines</h4>
           <ul>
             <li>Maximum file size: 10MB</li>
-            <li>Supported formats: Images (JPG, PNG, GIF), Documents (PDF, DOC, DOCX), Spreadsheets (XLS, XLSX)</li>
-            <li>Files are securely stored and only accessible to job participants</li>
+            <li>
+              Supported formats: Images (JPG, PNG, GIF), Documents (PDF, DOC,
+              DOCX), Spreadsheets (XLS, XLSX)
+            </li>
+            <li>
+              Files are securely stored and only accessible to job participants
+            </li>
             <li>Use descriptive file names for better organization</li>
             <li>Upload progress updates and deliverables promptly</li>
           </ul>
@@ -244,4 +256,4 @@ const JobFiles = ({ job, isVendor, isCustomer, onFileUpload }) => {
   );
 };
 
-export default JobFiles; 
+export default JobFiles;

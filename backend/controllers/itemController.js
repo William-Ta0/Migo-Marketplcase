@@ -1,4 +1,4 @@
-const Item = require('../models/itemModel');
+const Item = require("../models/itemModel");
 
 // @desc    Get all items
 // @route   GET /api/items
@@ -9,7 +9,7 @@ const getItems = async (req, res) => {
     res.json(items);
   } catch (error) {
     res.status(500);
-    throw new Error('Server Error');
+    throw new Error("Server Error");
   }
 };
 
@@ -23,11 +23,11 @@ const getItemById = async (req, res) => {
       res.json(item);
     } else {
       res.status(404);
-      throw new Error('Item not found');
+      throw new Error("Item not found");
     }
   } catch (error) {
     res.status(404);
-    throw new Error('Item not found');
+    throw new Error("Item not found");
   }
 };
 
@@ -40,7 +40,7 @@ const createItem = async (req, res) => {
 
     if (!name || !description) {
       res.status(400);
-      throw new Error('Please provide name and description');
+      throw new Error("Please provide name and description");
     }
 
     const item = await Item.create({
@@ -64,14 +64,12 @@ const updateItem = async (req, res) => {
 
     if (!item) {
       res.status(404);
-      throw new Error('Item not found');
+      throw new Error("Item not found");
     }
 
-    const updatedItem = await Item.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     res.json(updatedItem);
   } catch (error) {
@@ -89,11 +87,11 @@ const deleteItem = async (req, res) => {
 
     if (!item) {
       res.status(404);
-      throw new Error('Item not found');
+      throw new Error("Item not found");
     }
 
     await item.deleteOne();
-    res.json({ message: 'Item removed' });
+    res.json({ message: "Item removed" });
   } catch (error) {
     res.status(400);
     throw new Error(error.message);
@@ -106,4 +104,4 @@ module.exports = {
   createItem,
   updateItem,
   deleteItem,
-}; 
+};

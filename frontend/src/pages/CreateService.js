@@ -1,117 +1,117 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createService } from '../api/serviceApi';
-import { useAuth } from '../context/AuthContext';
-import '../styles/CreateService.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { createService } from "../api/serviceApi";
+import { useAuth } from "../context/AuthContext";
+import "../styles/CreateService.css";
 
 const CreateService = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
-    subcategory: '',
+    title: "",
+    description: "",
+    category: "",
+    subcategory: "",
     pricing: {
-      type: 'fixed',
-      currency: 'USD',
-      amount: '',
-      packages: []
+      type: "fixed",
+      currency: "USD",
+      amount: "",
+      packages: [],
     },
     location: {
-      type: 'remote',
-      address: ''
+      type: "remote",
+      address: "",
     },
-    deliveryTime: '',
-    requirements: [''],
-    deliverables: [''],
-    tags: ''
+    deliveryTime: "",
+    requirements: [""],
+    deliverables: [""],
+    tags: "",
   });
   const [error, setError] = useState(null);
 
   // Check authentication on component mount
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
   }, [user, authLoading, navigate]);
 
   const categories = [
-    'Web Development',
-    'Mobile Development', 
-    'Design & Creative',
-    'Digital Marketing',
-    'Writing & Translation',
-    'Video & Animation',
-    'Programming & Tech',
-    'Business',
-    'Music & Audio',
-    'Data',
-    'Photography'
+    "Web Development",
+    "Mobile Development",
+    "Design & Creative",
+    "Digital Marketing",
+    "Writing & Translation",
+    "Video & Animation",
+    "Programming & Tech",
+    "Business",
+    "Music & Audio",
+    "Data",
+    "Photography",
   ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name.includes('.')) {
-      const [section, field] = name.split('.');
-      setFormData(prev => ({
+
+    if (name.includes(".")) {
+      const [section, field] = name.split(".");
+      setFormData((prev) => ({
         ...prev,
         [section]: {
           ...prev[section],
-          [field]: value
-        }
+          [field]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
   const handleArrayChange = (field, index, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
+      [field]: prev[field].map((item, i) => (i === index ? value : item)),
     }));
   };
 
   const addArrayField = (field) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: [...prev[field], '']
+      [field]: [...prev[field], ""],
     }));
   };
 
   const removeArrayField = (field, index) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
+      [field]: prev[field].filter((_, i) => i !== index),
     }));
   };
 
   const validateForm = () => {
     if (!formData.title.trim()) {
-      setError('Service title is required');
+      setError("Service title is required");
       return false;
     }
     if (!formData.description.trim()) {
-      setError('Service description is required');
+      setError("Service description is required");
       return false;
     }
     if (!formData.category) {
-      setError('Category is required');
+      setError("Category is required");
       return false;
     }
     if (!formData.deliveryTime || formData.deliveryTime < 1) {
-      setError('Delivery time must be at least 1 day');
+      setError("Delivery time must be at least 1 day");
       return false;
     }
     if (!formData.pricing.amount || parseFloat(formData.pricing.amount) <= 0) {
-      setError('Price must be greater than 0');
+      setError("Price must be greater than 0");
       return false;
     }
     return true;
@@ -119,11 +119,11 @@ const CreateService = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate authentication
     if (!user) {
-      setError('You must be logged in to create a service');
-      navigate('/login');
+      setError("You must be logged in to create a service");
+      navigate("/login");
       return;
     }
 
@@ -133,7 +133,7 @@ const CreateService = () => {
 
     setLoading(true);
     setError(null);
-    
+
     try {
       // Prepare service data with better validation
       const serviceData = {
@@ -142,18 +142,23 @@ const CreateService = () => {
         category: formData.category,
         subcategory: formData.subcategory || formData.category,
         shortDescription: formData.description.trim().substring(0, 150),
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
-        requirements: formData.requirements.filter(req => req && req.trim()),
-        deliverables: formData.deliverables.filter(del => del && del.trim()),
+        tags: formData.tags
+          ? formData.tags
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter((tag) => tag)
+          : [],
+        requirements: formData.requirements.filter((req) => req && req.trim()),
+        deliverables: formData.deliverables.filter((del) => del && del.trim()),
         deliveryTime: parseInt(formData.deliveryTime),
         pricing: {
           type: formData.pricing.type,
           currency: formData.pricing.currency,
-          amount: parseFloat(formData.pricing.amount)
+          amount: parseFloat(formData.pricing.amount),
         },
         location: {
           type: formData.location.type,
-          address: formData.location.address || ''
+          address: formData.location.address || "",
         },
         isActive: true,
         featured: false,
@@ -161,32 +166,36 @@ const CreateService = () => {
         stats: {
           rating: { average: 0, count: 0 },
           orders: 0,
-          responseTime: '24 hours'
-        }
+          responseTime: "24 hours",
+        },
       };
 
-      console.log('Submitting service data:', serviceData);
-      
+      console.log("Submitting service data:", serviceData);
+
       const response = await createService(serviceData);
-      console.log('Service created successfully:', response);
-      
+      console.log("Service created successfully:", response);
+
       // Redirect to vendor jobs dashboard
-      navigate('/vendor/jobs');
+      navigate("/vendor/jobs");
     } catch (error) {
-      console.error('Error creating service:', error);
-      
+      console.error("Error creating service:", error);
+
       // Better error handling
       if (error.response?.status === 401) {
-        setError('Authentication failed. Please log in again.');
-        navigate('/login');
+        setError("Authentication failed. Please log in again.");
+        navigate("/login");
       } else if (error.response?.status === 403) {
-        setError('You do not have permission to create services. Make sure you are logged in as a vendor.');
+        setError(
+          "You do not have permission to create services. Make sure you are logged in as a vendor."
+        );
       } else if (error.response?.data?.message) {
         setError(error.response.data.message);
       } else if (error.message) {
         setError(error.message);
       } else {
-        setError('Failed to create service. Please check your connection and try again.');
+        setError(
+          "Failed to create service. Please check your connection and try again."
+        );
       }
     } finally {
       setLoading(false);
@@ -221,7 +230,7 @@ const CreateService = () => {
           {/* Basic Information */}
           <div className="form-section">
             <h3>Basic Information</h3>
-            
+
             <div className="form-group">
               <label htmlFor="title">Service Title *</label>
               <input
@@ -261,8 +270,10 @@ const CreateService = () => {
                   required
                 >
                   <option value="">Select a category</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -286,7 +297,7 @@ const CreateService = () => {
           {/* Pricing */}
           <div className="form-section">
             <h3>Pricing</h3>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="pricing.type">Pricing Type</label>
@@ -304,7 +315,10 @@ const CreateService = () => {
 
               <div className="form-group">
                 <label htmlFor="pricing.amount">
-                  {formData.pricing.type === 'hourly' ? 'Hourly Rate ($)' : 'Starting Price ($)'} *
+                  {formData.pricing.type === "hourly"
+                    ? "Hourly Rate ($)"
+                    : "Starting Price ($)"}{" "}
+                  *
                 </label>
                 <input
                   type="number"
@@ -323,7 +337,7 @@ const CreateService = () => {
           {/* Location */}
           <div className="form-section">
             <h3>Service Location</h3>
-            
+
             <div className="form-group">
               <label htmlFor="location.type">Location Type</label>
               <select
@@ -338,7 +352,7 @@ const CreateService = () => {
               </select>
             </div>
 
-            {formData.location.type !== 'remote' && (
+            {formData.location.type !== "remote" && (
               <div className="form-group">
                 <label htmlFor="location.address">Service Area</label>
                 <input
@@ -356,21 +370,25 @@ const CreateService = () => {
           {/* Requirements */}
           <div className="form-section">
             <h3>Requirements</h3>
-            <p className="section-description">What do you need from the buyer to get started?</p>
-            
+            <p className="section-description">
+              What do you need from the buyer to get started?
+            </p>
+
             {formData.requirements.map((req, index) => (
               <div key={index} className="array-input">
                 <input
                   type="text"
                   value={req}
-                  onChange={(e) => handleArrayChange('requirements', index, e.target.value)}
+                  onChange={(e) =>
+                    handleArrayChange("requirements", index, e.target.value)
+                  }
                   placeholder={`Requirement ${index + 1}`}
                   maxLength="200"
                 />
                 {formData.requirements.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => removeArrayField('requirements', index)}
+                    onClick={() => removeArrayField("requirements", index)}
                     className="remove-btn"
                   >
                     Remove
@@ -380,7 +398,7 @@ const CreateService = () => {
             ))}
             <button
               type="button"
-              onClick={() => addArrayField('requirements')}
+              onClick={() => addArrayField("requirements")}
               className="add-btn"
             >
               Add Requirement
@@ -391,20 +409,22 @@ const CreateService = () => {
           <div className="form-section">
             <h3>Deliverables</h3>
             <p className="section-description">What will the buyer receive?</p>
-            
+
             {formData.deliverables.map((del, index) => (
               <div key={index} className="array-input">
                 <input
                   type="text"
                   value={del}
-                  onChange={(e) => handleArrayChange('deliverables', index, e.target.value)}
+                  onChange={(e) =>
+                    handleArrayChange("deliverables", index, e.target.value)
+                  }
                   placeholder={`Deliverable ${index + 1}`}
                   maxLength="200"
                 />
                 {formData.deliverables.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => removeArrayField('deliverables', index)}
+                    onClick={() => removeArrayField("deliverables", index)}
                     className="remove-btn"
                   >
                     Remove
@@ -414,7 +434,7 @@ const CreateService = () => {
             ))}
             <button
               type="button"
-              onClick={() => addArrayField('deliverables')}
+              onClick={() => addArrayField("deliverables")}
               className="add-btn"
             >
               Add Deliverable
@@ -434,26 +454,28 @@ const CreateService = () => {
                 onChange={handleChange}
                 placeholder="web design, responsive, modern, business"
               />
-              <small>Enter keywords that describe your service, separated by commas</small>
+              <small>
+                Enter keywords that describe your service, separated by commas
+              </small>
             </div>
           </div>
 
           {/* Submit Button */}
           <div className="form-actions">
-            <button 
-              type="button" 
-              onClick={() => navigate('/vendor/jobs')}
+            <button
+              type="button"
+              onClick={() => navigate("/vendor/jobs")}
               className="btn btn-secondary"
               disabled={loading}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary"
               disabled={loading}
             >
-              {loading ? 'Creating Service...' : 'Create Service'}
+              {loading ? "Creating Service..." : "Create Service"}
             </button>
           </div>
         </form>
@@ -462,4 +484,4 @@ const CreateService = () => {
   );
 };
 
-export default CreateService; 
+export default CreateService;

@@ -1,35 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
-import DeleteAccount from '../components/DeleteAccount';
-import '../styles/Profile.css';
+import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from "../context/AuthContext";
+import DeleteAccount from "../components/DeleteAccount";
+import "../styles/Profile.css";
 
 const Profile = () => {
-  const { currentUser, getUserProfile, updateUserProfile, uploadAvatar } = useAuth();
+  const { currentUser, getUserProfile, updateUserProfile, uploadAvatar } =
+    useAuth();
   const fileInputRef = useRef(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    bio: '',
+    name: "",
+    email: "",
+    phoneNumber: "",
+    bio: "",
     address: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: ''
-    }
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+    },
   });
-  
-  const [avatar, setAvatar] = useState('');
+
+  const [avatar, setAvatar] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState('');
-  const [role, setRole] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -37,31 +38,31 @@ const Profile = () => {
         const userProfile = await getUserProfile();
         if (userProfile) {
           setFormData({
-            name: userProfile.name || '',
-            email: userProfile.email || '',
-            phoneNumber: userProfile.phoneNumber || '',
-            bio: userProfile.bio || '',
+            name: userProfile.name || "",
+            email: userProfile.email || "",
+            phoneNumber: userProfile.phoneNumber || "",
+            bio: userProfile.bio || "",
             address: {
-              street: userProfile.address?.street || '',
-              city: userProfile.address?.city || '',
-              state: userProfile.address?.state || '',
-              zipCode: userProfile.address?.zipCode || '',
-              country: userProfile.address?.country || ''
-            }
+              street: userProfile.address?.street || "",
+              city: userProfile.address?.city || "",
+              state: userProfile.address?.state || "",
+              zipCode: userProfile.address?.zipCode || "",
+              country: userProfile.address?.country || "",
+            },
           });
-          setAvatar(userProfile.avatar || '');
-          setRole(userProfile.role || 'No role assigned');
+          setAvatar(userProfile.avatar || "");
+          setRole(userProfile.role || "No role assigned");
         } else {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
-            name: currentUser.displayName || '',
-            email: currentUser.email || ''
+            name: currentUser.displayName || "",
+            email: currentUser.email || "",
           }));
-          setRole('No role assigned');
+          setRole("No role assigned");
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
-        setError('Failed to load profile data');
+        console.error("Error fetching profile:", error);
+        setError("Failed to load profile data");
       } finally {
         setLoading(false);
       }
@@ -74,20 +75,20 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name.startsWith('address.')) {
-      const addressField = name.split('.')[1];
-      setFormData(prev => ({
+
+    if (name.startsWith("address.")) {
+      const addressField = name.split(".")[1];
+      setFormData((prev) => ({
         ...prev,
         address: {
           ...prev.address,
-          [addressField]: value
-        }
+          [addressField]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -96,19 +97,19 @@ const Profile = () => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select an image file');
+      if (!file.type.startsWith("image/")) {
+        setError("Please select an image file");
         return;
       }
-      
+
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('Image size must be less than 5MB');
+        setError("Image size must be less than 5MB");
         return;
       }
-      
+
       setAvatarFile(file);
-      
+
       // Create preview URL
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -120,34 +121,34 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      setError('');
-      setMessage('');
+      setError("");
+      setMessage("");
       setUpdateLoading(true);
-      
+
       let avatarUrl = avatar;
-      
+
       // Upload avatar if new file selected
       if (avatarFile) {
         const uploadResult = await uploadAvatar(avatarFile);
         avatarUrl = uploadResult.avatar;
       }
-      
+
       const updateData = {
         ...formData,
-        avatar: avatarUrl
+        avatar: avatarUrl,
       };
-      
+
       await updateUserProfile(updateData);
-      
+
       setAvatar(avatarUrl);
       setAvatarFile(null);
-      setAvatarPreview('');
-      setMessage('Profile updated successfully!');
+      setAvatarPreview("");
+      setMessage("Profile updated successfully!");
     } catch (error) {
-      console.error('Profile update error:', error);
-      setError('Failed to update profile: ' + error.message);
+      console.error("Profile update error:", error);
+      setError("Failed to update profile: " + error.message);
     } finally {
       setUpdateLoading(false);
     }
@@ -162,15 +163,18 @@ const Profile = () => {
     );
   }
 
-  const displayRole = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'No role assigned';
-  
+  const displayRole = role
+    ? role.charAt(0).toUpperCase() + role.slice(1)
+    : "No role assigned";
+
   // Get the backend URL based on environment
   const getBackendUrl = () => {
-    return process.env.NODE_ENV === 'production' 
-      ? process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://your-backend-url.com'
-      : 'http://localhost:5001';
+    return process.env.NODE_ENV === "production"
+      ? process.env.REACT_APP_API_URL?.replace("/api", "") ||
+          "https://your-backend-url.com"
+      : "http://localhost:5001";
   };
-  
+
   const getAvatarUrl = () => {
     if (avatarPreview) return avatarPreview;
     if (avatar) return `${getBackendUrl()}${avatar}`;
@@ -196,11 +200,17 @@ const Profile = () => {
               <div className="avatar-container">
                 <div className="avatar-display">
                   {getAvatarUrl() ? (
-                    <img src={getAvatarUrl()} alt="Profile" className="avatar-image" />
+                    <img
+                      src={getAvatarUrl()}
+                      alt="Profile"
+                      className="avatar-image"
+                    />
                   ) : (
                     <div className="avatar-placeholder">
                       <span className="avatar-initials">
-                        {formData.name ? formData.name.charAt(0).toUpperCase() : 'U'}
+                        {formData.name
+                          ? formData.name.charAt(0).toUpperCase()
+                          : "U"}
                       </span>
                     </div>
                   )}
@@ -217,7 +227,7 @@ const Profile = () => {
                   ref={fileInputRef}
                   onChange={handleAvatarChange}
                   accept="image/*"
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
               </div>
             </div>
@@ -259,11 +269,7 @@ const Profile = () => {
               </div>
               <div className="form-control">
                 <label>Role</label>
-                <input
-                  type="text"
-                  value={displayRole}
-                  disabled
-                />
+                <input type="text" value={displayRole} disabled />
                 <small>Role can only be changed during registration</small>
               </div>
             </div>
@@ -350,7 +356,7 @@ const Profile = () => {
               type="submit"
               className="btn btn-primary btn-large"
             >
-              {updateLoading ? 'Updating...' : 'Save Changes'}
+              {updateLoading ? "Updating..." : "Save Changes"}
             </button>
           </div>
         </form>
@@ -358,7 +364,10 @@ const Profile = () => {
         {/* Danger Zone */}
         <div className="danger-zone">
           <h3>Danger Zone</h3>
-          <p>Once you delete your account, there is no going back. Please be certain.</p>
+          <p>
+            Once you delete your account, there is no going back. Please be
+            certain.
+          </p>
           <DeleteAccount />
         </div>
       </div>
@@ -366,4 +375,4 @@ const Profile = () => {
   );
 };
 
-export default Profile; 
+export default Profile;

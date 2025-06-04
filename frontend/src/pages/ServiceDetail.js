@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getServiceById } from '../api/serviceApi';
-import { createJob } from '../api/jobApi';
-import { useAuth } from '../context/AuthContext';
-import '../styles/ServiceDetail.css';
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { getServiceById } from "../api/serviceApi";
+import { createJob } from "../api/jobApi";
+import { useAuth } from "../context/AuthContext";
+import "../styles/ServiceDetail.css";
 
 const ServiceDetail = () => {
   const { id } = useParams();
@@ -11,15 +11,15 @@ const ServiceDetail = () => {
   const { user } = useAuth();
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingData, setBookingData] = useState({
-    message: '',
-    preferredDate: '',
-    urgency: 'normal'
+    message: "",
+    preferredDate: "",
+    urgency: "normal",
   });
 
   useEffect(() => {
@@ -35,15 +35,18 @@ const ServiceDetail = () => {
       if (response.success) {
         setService(response.data);
         // Set first package as default for package pricing
-        if (response.data.pricing.type === 'package' && response.data.pricing.packages?.length > 0) {
+        if (
+          response.data.pricing.type === "package" &&
+          response.data.pricing.packages?.length > 0
+        ) {
           setSelectedPackage(response.data.pricing.packages[0]);
         }
       } else {
-        setError('Service not found');
+        setError("Service not found");
       }
     } catch (err) {
-      setError('Error loading service details');
-      console.error('Error fetching service:', err);
+      setError("Error loading service details");
+      console.error("Error fetching service:", err);
     } finally {
       setLoading(false);
     }
@@ -51,14 +54,14 @@ const ServiceDetail = () => {
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
     if (!bookingData.message.trim()) {
-      alert('Please provide a message describing your needs');
+      alert("Please provide a message describing your needs");
       return;
     }
 
@@ -74,52 +77,56 @@ const ServiceDetail = () => {
         selectedPackage: selectedPackage,
         location: {
           address: null, // Can be expanded later
-          specialInstructions: ''
-        }
+          specialInstructions: "",
+        },
       };
 
       const response = await createJob(jobData);
-      
+
       if (response.success) {
         setShowBookingModal(false);
         // Reset form
         setBookingData({
-          message: '',
-          preferredDate: '',
-          urgency: 'normal'
+          message: "",
+          preferredDate: "",
+          urgency: "normal",
         });
-        
+
         // Show success and redirect to jobs page
-        alert('Booking request sent successfully! The vendor will respond soon.');
-        navigate('/jobs'); // We'll create this page next
+        alert(
+          "Booking request sent successfully! The vendor will respond soon."
+        );
+        navigate("/jobs"); // We'll create this page next
       }
     } catch (error) {
-      console.error('Error creating booking:', error);
-      alert(error.message || 'Failed to send booking request. Please try again.');
+      console.error("Error creating booking:", error);
+      alert(
+        error.message || "Failed to send booking request. Please try again."
+      );
     } finally {
       setBookingLoading(false);
     }
   };
 
   const formatPrice = (service, packageData = null) => {
-    if (service.pricing.type === 'custom') {
-      return 'Get Quote';
+    if (service.pricing.type === "custom") {
+      return "Get Quote";
     }
-    
-    const currency = service.pricing.currency || 'USD';
-    const symbol = currency === 'USD' ? '$' : currency;
-    
+
+    const currency = service.pricing.currency || "USD";
+    const symbol = currency === "USD" ? "$" : currency;
+
     if (packageData) {
       return `${symbol}${packageData.price}`;
     }
-    
+
     const amount = service.pricing.amount;
     switch (service.pricing.type) {
-      case 'hourly':
+      case "hourly":
         return `${symbol}${amount}/hr`;
-      case 'fixed':
+      case "fixed":
         return `${symbol}${amount}`;
-      case 'package':
+      case "package":
         return `Starting at ${symbol}${amount}`;
       default:
         return `${symbol}${amount}`;
@@ -130,7 +137,7 @@ const ServiceDetail = () => {
     if (packageData && packageData.deliveryTime) {
       return `${packageData.deliveryTime} days`;
     }
-    
+
     if (service.estimatedDuration) {
       const { min, max, unit } = service.estimatedDuration;
       if (min === max) {
@@ -138,8 +145,8 @@ const ServiceDetail = () => {
       }
       return `${min}-${max} ${unit}`;
     }
-    
-    return 'Contact for timeline';
+
+    return "Contact for timeline";
   };
 
   if (loading) {
@@ -158,7 +165,7 @@ const ServiceDetail = () => {
       <div className="service-detail">
         <div className="error-container">
           <h2>Service Not Found</h2>
-          <p>{error || 'The service you\'re looking for doesn\'t exist.'}</p>
+          <p>{error || "The service you're looking for doesn't exist."}</p>
           <Link to="/categories" className="btn btn-primary">
             Browse Services
           </Link>
@@ -186,9 +193,11 @@ const ServiceDetail = () => {
             <div className="service-images">
               <div className="main-image">
                 {service.images && service.images.length > 0 ? (
-                  <img 
-                    src={service.images[selectedImageIndex]?.url} 
-                    alt={service.images[selectedImageIndex]?.alt || service.title}
+                  <img
+                    src={service.images[selectedImageIndex]?.url}
+                    alt={
+                      service.images[selectedImageIndex]?.alt || service.title
+                    }
                   />
                 ) : (
                   <div className="no-image">
@@ -200,16 +209,21 @@ const ServiceDetail = () => {
                   <div className="featured-badge">Featured Service</div>
                 )}
               </div>
-              
+
               {service.images && service.images.length > 1 && (
                 <div className="image-thumbnails">
                   {service.images.map((image, index) => (
                     <button
                       key={index}
-                      className={`thumbnail ${index === selectedImageIndex ? 'active' : ''}`}
+                      className={`thumbnail ${
+                        index === selectedImageIndex ? "active" : ""
+                      }`}
                       onClick={() => setSelectedImageIndex(index)}
                     >
-                      <img src={image.url} alt={`${service.title} ${index + 1}`} />
+                      <img
+                        src={image.url}
+                        alt={`${service.title} ${index + 1}`}
+                      />
                     </button>
                   ))}
                 </div>
@@ -218,15 +232,21 @@ const ServiceDetail = () => {
 
             <div className="service-info">
               <div className="service-meta">
-                <span className="category" style={{ backgroundColor: service.category.color || '#3B82F6' }}>
+                <span
+                  className="category"
+                  style={{
+                    backgroundColor: service.category.color || "#3B82F6",
+                  }}
+                >
                   {service.category.icon} {service.subcategory.name}
                 </span>
                 <div className="rating">
                   <span className="stars">
-                    {'⭐'.repeat(Math.floor(service.displayRating || 0))}
+                    {"⭐".repeat(Math.floor(service.displayRating || 0))}
                   </span>
                   <span className="rating-text">
-                    {service.displayRating || '0.0'} ({service.reviewCount || 0} reviews)
+                    {service.displayRating || "0.0"} ({service.reviewCount || 0}{" "}
+                    reviews)
                   </span>
                 </div>
               </div>
@@ -236,14 +256,17 @@ const ServiceDetail = () => {
 
               {/* Pricing */}
               <div className="pricing-section">
-                {service.pricing.type === 'package' && service.pricing.packages ? (
+                {service.pricing.type === "package" &&
+                service.pricing.packages ? (
                   <div className="package-pricing">
                     <h3>Choose a Package</h3>
                     <div className="packages">
                       {service.pricing.packages.map((pkg, index) => (
-                        <div 
+                        <div
                           key={index}
-                          className={`package-card ${selectedPackage?.name === pkg.name ? 'selected' : ''}`}
+                          className={`package-card ${
+                            selectedPackage?.name === pkg.name ? "selected" : ""
+                          }`}
                           onClick={() => setSelectedPackage(pkg)}
                         >
                           <div className="package-header">
@@ -278,18 +301,14 @@ const ServiceDetail = () => {
 
               {/* Action Buttons */}
               <div className="action-buttons">
-                <button 
+                <button
                   className="btn btn-primary"
                   onClick={() => setShowBookingModal(true)}
                 >
-                  {service.pricing.type === 'custom' ? 'Get Quote' : 'Book Now'}
+                  {service.pricing.type === "custom" ? "Get Quote" : "Book Now"}
                 </button>
-                <button className="btn btn-secondary">
-                  💬 Contact Vendor
-                </button>
-                <button className="btn btn-outline">
-                  ❤️ Save
-                </button>
+                <button className="btn btn-secondary">💬 Contact Vendor</button>
+                <button className="btn btn-outline">❤️ Save</button>
               </div>
             </div>
           </div>
@@ -304,7 +323,7 @@ const ServiceDetail = () => {
             <section className="service-section">
               <h2>About This Service</h2>
               <div className="description">
-                {service.description.split('\n').map((paragraph, index) => (
+                {service.description.split("\n").map((paragraph, index) => (
                   <p key={index}>{paragraph}</p>
                 ))}
               </div>
@@ -361,10 +380,14 @@ const ServiceDetail = () => {
                   <h4>Service Area</h4>
                   <div className="service-area">
                     {service.location.serviceArea.cities && (
-                      <p>Cities: {service.location.serviceArea.cities.join(', ')}</p>
+                      <p>
+                        Cities: {service.location.serviceArea.cities.join(", ")}
+                      </p>
                     )}
                     {service.location.serviceArea.states && (
-                      <p>States: {service.location.serviceArea.states.join(', ')}</p>
+                      <p>
+                        States: {service.location.serviceArea.states.join(", ")}
+                      </p>
                     )}
                     {service.location.serviceArea.radius && (
                       <p>Radius: {service.location.serviceArea.radius} miles</p>
@@ -390,7 +413,10 @@ const ServiceDetail = () => {
               <div className="vendor-header">
                 <div className="vendor-avatar">
                   {service.vendor.avatar ? (
-                    <img src={service.vendor.avatar} alt={service.vendor.name} />
+                    <img
+                      src={service.vendor.avatar}
+                      alt={service.vendor.name}
+                    />
                   ) : (
                     <div className="avatar-placeholder">
                       {service.vendor.name.charAt(0)}
@@ -402,12 +428,13 @@ const ServiceDetail = () => {
                   <p className="vendor-title">Professional Service Provider</p>
                   {service.vendor.address && (
                     <p className="vendor-location">
-                      📍 {service.vendor.address.city}, {service.vendor.address.state}
+                      📍 {service.vendor.address.city},{" "}
+                      {service.vendor.address.state}
                     </p>
                   )}
                 </div>
               </div>
-              
+
               {service.vendor.bio && (
                 <div className="vendor-bio">
                   <p>{service.vendor.bio}</p>
@@ -416,7 +443,9 @@ const ServiceDetail = () => {
 
               <div className="vendor-stats">
                 <div className="stat">
-                  <span className="stat-value">{service.stats.rating.average.toFixed(1)}</span>
+                  <span className="stat-value">
+                    {service.stats.rating.average.toFixed(1)}
+                  </span>
                   <span className="stat-label">Rating</span>
                 </div>
                 <div className="stat">
@@ -453,7 +482,9 @@ const ServiceDetail = () => {
                 </div>
                 <div className="stat-row">
                   <span>Member Since</span>
-                  <span>{new Date(service.vendor.createdAt).getFullYear()}</span>
+                  <span>
+                    {new Date(service.vendor.createdAt).getFullYear()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -468,15 +499,15 @@ const ServiceDetail = () => {
             <h2>Related Services</h2>
             <div className="related-services-grid">
               {service.relatedServices.map((relatedService) => (
-                <Link 
+                <Link
                   key={relatedService._id}
                   to={`/services/${relatedService._id}`}
                   className="related-service-card"
                 >
                   <div className="service-image">
                     {relatedService.primaryImage ? (
-                      <img 
-                        src={relatedService.primaryImage.url} 
+                      <img
+                        src={relatedService.primaryImage.url}
                         alt={relatedService.title}
                       />
                     ) : (
@@ -490,7 +521,8 @@ const ServiceDetail = () => {
                       {formatPrice(relatedService)}
                     </div>
                     <div className="service-rating">
-                      ⭐ {relatedService.displayRating} ({relatedService.stats?.rating?.count || 0})
+                      ⭐ {relatedService.displayRating} (
+                      {relatedService.stats?.rating?.count || 0})
                     </div>
                   </div>
                 </Link>
@@ -502,11 +534,14 @@ const ServiceDetail = () => {
 
       {/* Booking Modal */}
       {showBookingModal && (
-        <div className="modal-overlay" onClick={() => setShowBookingModal(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowBookingModal(false)}
+        >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Book Service</h3>
-              <button 
+              <button
                 className="close-btn"
                 onClick={() => setShowBookingModal(false)}
               >
@@ -518,65 +553,83 @@ const ServiceDetail = () => {
                 <h4>{service.title}</h4>
                 {selectedPackage && (
                   <div className="selected-package">
-                    <p><strong>{selectedPackage.name}</strong> - ${selectedPackage.price}</p>
+                    <p>
+                      <strong>{selectedPackage.name}</strong> - $
+                      {selectedPackage.price}
+                    </p>
                     <p>{selectedPackage.description}</p>
                   </div>
                 )}
                 <p>by {service.vendor.name}</p>
               </div>
-              
+
               <form onSubmit={handleBookingSubmit} className="booking-form">
                 <div className="form-group">
                   <label htmlFor="message">Message to Vendor</label>
                   <textarea
                     id="message"
                     value={bookingData.message}
-                    onChange={(e) => setBookingData({...bookingData, message: e.target.value})}
+                    onChange={(e) =>
+                      setBookingData({
+                        ...bookingData,
+                        message: e.target.value,
+                      })
+                    }
                     placeholder="Describe your needs and any specific requirements..."
                     rows="4"
                     required
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="preferredDate">Preferred Start Date</label>
                   <input
                     type="date"
                     id="preferredDate"
                     value={bookingData.preferredDate}
-                    onChange={(e) => setBookingData({...bookingData, preferredDate: e.target.value})}
-                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) =>
+                      setBookingData({
+                        ...bookingData,
+                        preferredDate: e.target.value,
+                      })
+                    }
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="urgency">Urgency</label>
                   <select
                     id="urgency"
                     value={bookingData.urgency}
-                    onChange={(e) => setBookingData({...bookingData, urgency: e.target.value})}
+                    onChange={(e) =>
+                      setBookingData({
+                        ...bookingData,
+                        urgency: e.target.value,
+                      })
+                    }
                   >
                     <option value="normal">Normal</option>
                     <option value="urgent">Urgent</option>
                     <option value="emergency">Emergency</option>
                   </select>
                 </div>
-                
+
                 <div className="modal-actions">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
                     onClick={() => setShowBookingModal(false)}
                     disabled={bookingLoading}
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary" 
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
                     disabled={bookingLoading}
                   >
-                    {bookingLoading ? 'Sending...' : 'Send Booking Request'}
+                    {bookingLoading ? "Sending..." : "Send Booking Request"}
                   </button>
                 </div>
               </form>
@@ -588,4 +641,4 @@ const ServiceDetail = () => {
   );
 };
 
-export default ServiceDetail; 
+export default ServiceDetail;

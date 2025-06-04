@@ -1,22 +1,22 @@
-import axios from 'axios';
-import { auth } from '../firebase/config';
+import axios from "axios";
+import { auth } from "../firebase/config";
 
 // Use environment-specific API URLs
-const API_URL = process.env.REACT_APP_API_URL 
+const API_URL = process.env.REACT_APP_API_URL
   ? `${process.env.REACT_APP_API_URL}/services`
-  : 'http://localhost:5001/api/services';
+  : "http://localhost:5001/api/services";
 
 // Helper function to get auth headers
 const getAuthHeaders = async () => {
   const user = auth.currentUser;
   if (!user) {
-    throw new Error('No authenticated user found');
+    throw new Error("No authenticated user found");
   }
-  
+
   const token = await user.getIdToken();
   return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
   };
 };
 
@@ -28,7 +28,7 @@ export const getServices = async (params = {}) => {
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching services:', error);
+    console.error("Error fetching services:", error);
     throw error;
   }
 };
@@ -51,7 +51,7 @@ export const searchServices = async (params = {}) => {
     const response = await axios.get(`${API_URL}/search?${queryString}`);
     return response.data;
   } catch (error) {
-    console.error('Error searching services:', error);
+    console.error("Error searching services:", error);
     throw error;
   }
 };
@@ -60,7 +60,9 @@ export const searchServices = async (params = {}) => {
 export const getServicesByCategory = async (slug, params = {}) => {
   try {
     const queryString = new URLSearchParams(params).toString();
-    const url = queryString ? `${API_URL}/category/${slug}?${queryString}` : `${API_URL}/category/${slug}`;
+    const url = queryString
+      ? `${API_URL}/category/${slug}?${queryString}`
+      : `${API_URL}/category/${slug}`;
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
@@ -73,11 +75,13 @@ export const getServicesByCategory = async (slug, params = {}) => {
 export const getFeaturedServices = async (params = {}) => {
   try {
     const queryString = new URLSearchParams(params).toString();
-    const url = queryString ? `${API_URL}/featured?${queryString}` : `${API_URL}/featured`;
+    const url = queryString
+      ? `${API_URL}/featured?${queryString}`
+      : `${API_URL}/featured`;
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
-    console.error('Error fetching featured services:', error);
+    console.error("Error fetching featured services:", error);
     throw error;
   }
 };
@@ -88,7 +92,7 @@ export const getServiceStats = async () => {
     const response = await axios.get(`${API_URL}/stats`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching service stats:', error);
+    console.error("Error fetching service stats:", error);
     throw error;
   }
 };
@@ -98,11 +102,11 @@ export const createService = async (serviceData) => {
   try {
     const headers = await getAuthHeaders();
     const response = await axios.post(API_URL, serviceData, {
-      headers
+      headers,
     });
     return response.data;
   } catch (error) {
-    console.error('Error creating service:', error);
+    console.error("Error creating service:", error);
     throw error;
   }
 };
@@ -112,7 +116,7 @@ export const updateService = async (id, serviceData) => {
   try {
     const headers = await getAuthHeaders();
     const response = await axios.put(`${API_URL}/${id}`, serviceData, {
-      headers
+      headers,
     });
     return response.data;
   } catch (error) {
@@ -126,7 +130,7 @@ export const deleteService = async (id) => {
   try {
     const headers = await getAuthHeaders();
     const response = await axios.delete(`${API_URL}/${id}`, {
-      headers
+      headers,
     });
     return response.data;
   } catch (error) {
@@ -144,4 +148,4 @@ export const getVendorServices = async (vendorId) => {
     console.error(`Error fetching vendor services ${vendorId}:`, error);
     throw error;
   }
-}; 
+};
