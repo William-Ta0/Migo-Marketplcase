@@ -17,7 +17,7 @@ Migo Marketplace is a full-featured online platform where buyers and sellers com
 
 For detailed installation steps, environment configuration, and API documentation, please see **INFO.md** in the project root.
 
-[Open Technical Setup →](./INFO.md)
+[Open Technical Setup →](./TECH_STACK.md)
 
 ## Live Demo
 
