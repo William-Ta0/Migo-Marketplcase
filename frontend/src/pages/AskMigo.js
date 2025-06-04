@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 import "../styles/AskMigo.css";
 import { serviceTypes } from "../constants/serviceTypes";
+import { handleSearch } from "../pages/MapPage";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.REACT_APP_GOOGLE_GEMINI_API_KEY,
@@ -51,30 +52,51 @@ const AskMigo = () => {
 
   const recommendServices = (selectedService) => {
     const recommendations = currentServices.filter(
-      (service) => service !== selectedService
+      (service) =>
+        service !== selectedService && service.includes(selectedService)
     );
 
     const botMessage = {
       sender: "bot",
-      text: `Based on your selection, we recommend the following services: ${recommendations.join(
-        ", "
-      )}`,
+      text: recommendations.length
+        ? `Based on your selection, we recommend the following services: ${recommendations.join(
+            ", "
+          )}`
+        : "Sorry, we couldn't find any related services to recommend.",
     };
     setMessages((prevMessages) => [...prevMessages, botMessage]);
   };
 
-  const recommendBusinesses = (selectedService) => {
+  const recommendBusinesses = async (selectedService) => {
     const businesses = santaClaraBusinesses.filter(
       (business) => business.service === selectedService
     );
 
     const botMessage = {
       sender: "bot",
-      text: `Here are some businesses in Santa Clara offering ${selectedService}: ${businesses
+      text: `Promoted businesses in Santa Clara offering ${selectedService}: ${businesses
         .map((b) => b.name)
         .join(", ")}`,
     };
     setMessages((prevMessages) => [...prevMessages, botMessage]);
+
+    try {
+      const searchResults = await handleSearch(selectedService);
+      const searchMessage = {
+        sender: "bot",
+        text: `Other businesses found offering ${selectedService}: ${searchResults
+          .map((result) => result.name)
+          .join(", ")}`,
+      };
+      setMessages((prevMessages) => [...prevMessages, searchMessage]);
+    } catch (error) {
+      console.error("Error searching for businesses:", error);
+      const errorMessage = {
+        sender: "bot",
+        text: "Sorry, we couldn't find additional businesses at this time.",
+      };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+    }
   };
 
   const handleOptionSelect = (option) => {
