@@ -32,6 +32,9 @@ const Header = () => {
               <Link to="/categories" className="nav-link">
                 Categories
               </Link>
+              <Link to="/map" className="nav-link">
+                Map
+              </Link>
 
               {/* Customer Navigation */}
               {(!userProfile?.role || userProfile?.role === "customer") && (
