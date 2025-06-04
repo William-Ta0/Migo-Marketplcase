@@ -1,3 +1,19 @@
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  // It's often recommended to exit the process after an uncaught exception,
+  // as the application might be in an inconsistent state.
+  // Consider using a process manager like PM2 to automatically restart the app.
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  // Similar to uncaughtException, you might want to exit.
+  // However, the nature of unhandled rejections can vary.
+  // For critical errors, exiting is safer.
+  process.exit(1);
+});
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -37,14 +53,13 @@ app.get("/", (req, res) => {
 
 // API routes
 
-app.use('/api/items', require('./routes/itemRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/vendor', require('./routes/vendorRoutes'));
-app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/services', require('./routes/serviceRoutes'));
-app.use('/api/jobs', require('./routes/jobRoutes'));
-app.use('/api/reviews', require('./routes/reviewRoutes'));
-
+app.use("/api/items", require("./routes/itemRoutes"));
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/vendor", require("./routes/vendorRoutes"));
+app.use("/api/categories", require("./routes/categoryRoutes"));
+app.use("/api/services", require("./routes/serviceRoutes"));
+app.use("/api/jobs", require("./routes/jobRoutes"));
+app.use("/api/reviews", require("./routes/reviewRoutes"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

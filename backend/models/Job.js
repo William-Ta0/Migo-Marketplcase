@@ -23,125 +23,19 @@ const jobSchema = new mongoose.Schema(
       coordinates: {
         lat: Number,
         lng: Number,
-      }
+      },
     },
     meetingLink: String, // For remote services
     specialInstructions: String,
-  },
-  
-  // Job status and workflow
-  status: {
-    type: String,
-    enum: [
-      'pending',        // Initial request from customer
-      'accepted',       // Vendor accepted the job
-      'cancelled',      // Cancelled by either party
-      'completed'       // Work completed and customer confirmed
-    ],
-    default: 'pending',
-  },
-  
-  // Communication
-  messages: [{
-    sender: {
-
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Service",
-      required: true,
-    },
-    vendor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    customer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
-    // Selected package information (if applicable)
-    selectedPackage: {
-      name: String,
-      description: String,
-      price: Number,
-      features: [String],
-      deliveryTime: Number,
-    },
-
-    // Pricing and payment
-    pricing: {
-      type: {
-        type: String,
-        enum: ["fixed", "hourly", "package", "custom"],
-        required: true,
-      },
-      amount: {
-        type: Number,
-        required: true,
-      },
-      currency: {
-        type: String,
-        default: "USD",
-      },
-      estimatedTotal: Number,
-      finalTotal: Number,
-    },
-
-    // Scheduling
-    scheduling: {
-      preferredDate: Date,
-      confirmedDate: Date,
-      estimatedStartTime: String, // "09:00"
-      estimatedEndTime: String, // "17:00"
-      timezone: {
-        type: String,
-        default: "America/New_York",
-      },
-      duration: {
-        estimated: Number, // in hours
-        actual: Number,
-      },
-    },
-
-    // Location information
-    location: {
-      type: {
-        type: String,
-        enum: ["remote", "onsite", "both"],
-        required: true,
-      },
-      address: {
-        street: String,
-        city: String,
-        state: String,
-        zipCode: String,
-        country: String,
-        coordinates: {
-          lat: Number,
-          lng: Number,
-        },
-      },
-      meetingLink: String, // For remote services
-      specialInstructions: String,
-    },
 
     // Job status and workflow
     status: {
       type: String,
       enum: [
         "pending", // Initial request from customer
-        "reviewing", // Vendor reviewing the request
-        "quoted", // Vendor provided custom quote
         "accepted", // Vendor accepted the job
-        "rejected", // Vendor rejected the job
-        "confirmed", // Customer confirmed and paid
-        "in_progress", // Work has started
-        "completed", // Work completed by vendor
-        "delivered", // Delivered to customer
         "cancelled", // Cancelled by either party
-        "disputed", // There's a dispute
-        "closed", // Job finished and closed
+        "completed", // Work completed and customer confirmed
       ],
       default: "pending",
     },
@@ -151,163 +45,270 @@ const jobSchema = new mongoose.Schema(
       {
         sender: {
           type: mongoose.Schema.Types.ObjectId,
+          ref: "Service",
+          required: true,
+        },
+        vendor: {
+          type: mongoose.Schema.Types.ObjectId,
           ref: "User",
           required: true,
         },
-        message: {
-          type: String,
+        customer: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
           required: true,
         },
-        timestamp: {
-          type: Date,
-          default: Date.now,
-        },
-        type: {
-          type: String,
-          enum: ["message", "status_update", "system"],
-          default: "message",
-        },
-      },
-    ],
 
-    // Requirements and deliverables
-    requirements: [String],
-    deliverables: [String],
-    completedDeliverables: [
-      {
-        name: String,
-        description: String,
-        files: [
+        // Selected package information (if applicable)
+        selectedPackage: {
+          name: String,
+          description: String,
+          price: Number,
+          features: [String],
+          deliveryTime: Number,
+        },
+
+        // Pricing and payment
+        pricing: {
+          type: {
+            type: String,
+            enum: ["fixed", "hourly", "package", "custom"],
+            required: true,
+          },
+          amount: {
+            type: Number,
+            required: true,
+          },
+          currency: {
+            type: String,
+            default: "USD",
+          },
+          estimatedTotal: Number,
+          finalTotal: Number,
+        },
+
+        // Scheduling
+        scheduling: {
+          preferredDate: Date,
+          confirmedDate: Date,
+          estimatedStartTime: String, // "09:00"
+          estimatedEndTime: String, // "17:00"
+          timezone: {
+            type: String,
+            default: "America/New_York",
+          },
+          duration: {
+            estimated: Number, // in hours
+            actual: Number,
+          },
+        },
+
+        // Location information
+        location: {
+          type: {
+            type: String,
+            enum: ["remote", "onsite", "both"],
+            required: true,
+          },
+          address: {
+            street: String,
+            city: String,
+            state: String,
+            zipCode: String,
+            country: String,
+            coordinates: {
+              lat: Number,
+              lng: Number,
+            },
+          },
+          meetingLink: String, // For remote services
+          specialInstructions: String,
+        },
+
+        // Job status and workflow
+        status: {
+          type: String,
+          enum: [
+            "pending", // Initial request from customer
+            "reviewing", // Vendor reviewing the request
+            "quoted", // Vendor provided custom quote
+            "accepted", // Vendor accepted the job
+            "rejected", // Vendor rejected the job
+            "confirmed", // Customer confirmed and paid
+            "in_progress", // Work has started
+            "completed", // Work completed by vendor
+            "delivered", // Delivered to customer
+            "cancelled", // Cancelled by either party
+            "disputed", // There's a dispute
+            "closed", // Job finished and closed
+          ],
+          default: "pending",
+        },
+
+        // Communication
+        messages: [
+          {
+            sender: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "User",
+              required: true,
+            },
+            message: {
+              type: String,
+              required: true,
+            },
+            timestamp: {
+              type: Date,
+              default: Date.now,
+            },
+            type: {
+              type: String,
+              enum: ["message", "status_update", "system"],
+              default: "message",
+            },
+          },
+        ],
+
+        // Requirements and deliverables
+        requirements: [String],
+        deliverables: [String],
+        completedDeliverables: [
+          {
+            name: String,
+            description: String,
+            files: [
+              {
+                name: String,
+                url: String,
+                type: String, // 'image', 'document', 'video', etc.
+              },
+            ],
+            completedAt: Date,
+          },
+        ],
+
+        // Urgency and priority
+        urgency: {
+          type: String,
+          enum: ["normal", "urgent", "emergency"],
+          default: "normal",
+        },
+        priority: {
+          type: Number,
+          default: 1, // 1 = low, 2 = medium, 3 = high
+        },
+
+        // Files and attachments
+        attachments: [
           {
             name: String,
             url: String,
-            type: String, // 'image', 'document', 'video', etc.
+            type: String,
+            uploadedBy: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "User",
+            },
+            uploadedAt: {
+              type: Date,
+              default: Date.now,
+            },
           },
         ],
-        completedAt: Date,
-      },
-    ],
 
-    // Urgency and priority
-    urgency: {
-      type: String,
-      enum: ["normal", "urgent", "emergency"],
-      default: "normal",
-    },
-    priority: {
-      type: Number,
-      default: 1, // 1 = low, 2 = medium, 3 = high
-    },
-
-    // Files and attachments
-    attachments: [
-      {
-        name: String,
-        url: String,
-        type: String,
-        uploadedBy: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+        // Payment information
+        payment: {
+          status: {
+            type: String,
+            enum: ["pending", "partial", "paid", "refunded", "failed"],
+            default: "pending",
+          },
+          method: String,
+          transactionId: String,
+          paidAmount: {
+            type: Number,
+            default: 0,
+          },
+          refundAmount: {
+            type: Number,
+            default: 0,
+          },
+          paymentDate: Date,
         },
-        uploadedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
 
-    // Payment information
-    payment: {
-      status: {
-        type: String,
-        enum: ["pending", "partial", "paid", "refunded", "failed"],
-        default: "pending",
-      },
-      method: String,
-      transactionId: String,
-      paidAmount: {
-        type: Number,
-        default: 0,
-      },
-      refundAmount: {
-        type: Number,
-        default: 0,
-      },
-      paymentDate: Date,
-    },
-
-    // Reviews and ratings
-    review: {
-      customer: {
-        rating: {
-          type: Number,
-          min: 1,
-          max: 5,
+        // Reviews and ratings
+        review: {
+          customer: {
+            rating: {
+              type: Number,
+              min: 1,
+              max: 5,
+            },
+            comment: String,
+            date: Date,
+          },
+          vendor: {
+            rating: {
+              type: Number,
+              min: 1,
+              max: 5,
+            },
+            comment: String,
+            date: Date,
+          },
         },
-        comment: String,
-        date: Date,
-      },
-      vendor: {
-        rating: {
-          type: Number,
-          min: 1,
-          max: 5,
-        },
-        comment: String,
-        date: Date,
-      },
-    },
 
-    // Tracking and analytics
-    tracking: {
-      viewedByVendor: {
-        type: Boolean,
-        default: false,
-      },
-      viewedByCustomer: {
-        type: Boolean,
-        default: true,
-      },
-      lastViewedByVendor: Date,
-      lastViewedByCustomer: Date,
-      statusHistory: [
-        {
-          status: String,
-          timestamp: Date,
-          changedBy: {
+        // Tracking and analytics
+        tracking: {
+          viewedByVendor: {
+            type: Boolean,
+            default: false,
+          },
+          viewedByCustomer: {
+            type: Boolean,
+            default: true,
+          },
+          lastViewedByVendor: Date,
+          lastViewedByCustomer: Date,
+          statusHistory: [
+            {
+              status: String,
+              timestamp: Date,
+              changedBy: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+              },
+              reason: String,
+            },
+          ],
+        },
+
+        // Cancellation information
+        cancellation: {
+          cancelledBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
           },
           reason: String,
+          cancelledAt: Date,
+          refundIssued: {
+            type: Boolean,
+            default: false,
+          },
+          refundAmount: Number,
         },
-      ],
-    },
 
-    // Cancellation information
-    cancellation: {
-      cancelledBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        // Metadata
+        metadata: {
+          source: {
+            type: String,
+            default: "web", // 'web', 'mobile', 'api'
+          },
+          platform: String,
+          referrer: String,
+          customFields: Object, // For any additional data
+        },
       },
-      reason: String,
-      cancelledAt: Date,
-      refundIssued: {
-        type: Boolean,
-        default: false,
-      },
-      refundAmount: Number,
-    },
-
-    // Metadata
-    metadata: {
-      source: {
-        type: String,
-        default: "web", // 'web', 'mobile', 'api'
-      },
-      platform: String,
-      referrer: String,
-      customFields: Object, // For any additional data
-    },
+    ],
   },
   {
     timestamps: true,
