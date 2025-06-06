@@ -31,6 +31,7 @@ Migo Marketplace integrates Google Maps API to provide users with an interactive
 ### Maps Provider: Google Maps Platform
 
 **APIs Used**:
+
 - Google Maps JavaScript API
 - Google Places API (Places Search)
 
@@ -80,7 +81,7 @@ const mapContainerStyle = {
 // Santa Clara University coordinates (default center)
 const center = {
   lat: 37.3496,
-  lng: -121.9390,
+  lng: -121.939,
 };
 
 // Map options for enhanced user experience
@@ -104,12 +105,13 @@ The map implementation is specifically configured for the Santa Clara, Californi
 ```javascript
 // Map bounds restriction
 const bounds = new window.google.maps.LatLngBounds(
-  new window.google.maps.LatLng(37.2000, -122.1000), // SW corner
-  new window.google.maps.LatLng(37.5000, -121.7000)  // NE corner
+  new window.google.maps.LatLng(37.2, -122.1), // SW corner
+  new window.google.maps.LatLng(37.5, -121.7) // NE corner
 );
 ```
 
 **Coverage Area**:
+
 - **Primary Focus**: Santa Clara University area
 - **Extended Coverage**: Greater Santa Clara region
 - **Coordinates**: Centered at (37.3496, -121.9390)
@@ -129,14 +131,14 @@ export const handleSearch = (query) => {
     }
 
     const service = new window.google.maps.places.PlacesService(
-      document.createElement('div')
+      document.createElement("div")
     );
 
     const request = {
       query: query,
       location: center, // Santa Clara University
       radius: 5000, // 5km radius
-      type: ['establishment']
+      type: ["establishment"],
     };
 
     service.textSearch(request, (results, status) => {
@@ -163,42 +165,46 @@ export const handleSearch = (query) => {
 
 ```javascript
 // Dynamic marker creation
-{places.map((place, index) => (
-  <Marker
-    key={index}
-    position={{
-      lat: place.geometry.location.lat(),
-      lng: place.geometry.location.lng(),
-    }}
-    onClick={() => setSelectedPlace(place)}
-    icon={{
-      url: '/path/to/custom-marker.png',
-      scaledSize: new window.google.maps.Size(40, 40),
-    }}
-  />
-))}
+{
+  places.map((place, index) => (
+    <Marker
+      key={index}
+      position={{
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+      }}
+      onClick={() => setSelectedPlace(place)}
+      icon={{
+        url: "/path/to/custom-marker.png",
+        scaledSize: new window.google.maps.Size(40, 40),
+      }}
+    />
+  ));
+}
 ```
 
 ### 2. **Info Windows**
 
 ```javascript
 // Business information display
-{selectedPlace && (
-  <InfoWindow
-    position={{
-      lat: selectedPlace.geometry.location.lat(),
-      lng: selectedPlace.geometry.location.lng(),
-    }}
-    onCloseClick={() => setSelectedPlace(null)}
-  >
-    <div className="info-window">
-      <h3>{selectedPlace.name}</h3>
-      <p>{selectedPlace.formatted_address}</p>
-      <p>Rating: {selectedPlace.rating}/5</p>
-      <p>Status: {selectedPlace.business_status}</p>
-    </div>
-  </InfoWindow>
-)}
+{
+  selectedPlace && (
+    <InfoWindow
+      position={{
+        lat: selectedPlace.geometry.location.lat(),
+        lng: selectedPlace.geometry.location.lng(),
+      }}
+      onCloseClick={() => setSelectedPlace(null)}
+    >
+      <div className="info-window">
+        <h3>{selectedPlace.name}</h3>
+        <p>{selectedPlace.formatted_address}</p>
+        <p>Rating: {selectedPlace.rating}/5</p>
+        <p>Status: {selectedPlace.business_status}</p>
+      </div>
+    </InfoWindow>
+  );
+}
 ```
 
 ### 3. **Search Interface**
@@ -216,10 +222,20 @@ The map integrates with predefined service categories:
 ```javascript
 // From /constants/serviceTypes.js
 const serviceTypes = [
-  "Catering", "Cleaning", "Plumbing", "Electrical",
-  "Landscaping", "Painting", "Baked Goods", "Decorating",
-  "DJ Services", "Photography", "Pest Control", "Moving Services",
-  "Pet Care", "Tutoring"
+  "Catering",
+  "Cleaning",
+  "Plumbing",
+  "Electrical",
+  "Landscaping",
+  "Painting",
+  "Baked Goods",
+  "Decorating",
+  "DJ Services",
+  "Photography",
+  "Pest Control",
+  "Moving Services",
+  "Pet Care",
+  "Tutoring",
 ];
 ```
 
@@ -238,7 +254,7 @@ const dummyServices = [
     phone: "(408) 555-0101",
     ratingValue: 4.8,
     ratingsCount: 127,
-    coordinates: { lat: 37.3496, lng: -121.9390 }
+    coordinates: { lat: 37.3496, lng: -121.939 },
   },
   // ... more businesses
 ];
@@ -253,13 +269,13 @@ const dummyServices = [
 const handleServiceRecommendation = async (serviceType) => {
   // 1. Get AI recommendation
   const aiResponse = await getAIRecommendation(serviceType);
-  
+
   // 2. Search map for relevant businesses
   const mapResults = await handleSearch(serviceType);
-  
+
   // 3. Combine results for comprehensive view
   const combinedResults = combineAIAndMapResults(aiResponse, mapResults);
-  
+
   // 4. Display on map with markers
   displayResultsOnMap(combinedResults);
 };
@@ -295,14 +311,14 @@ const onMapError = (error) => {
 // Places API error handling
 const handlePlacesError = (status) => {
   const errorMessages = {
-    'ZERO_RESULTS': 'No places found for your search.',
-    'OVER_QUERY_LIMIT': 'Too many requests. Please try again later.',
-    'REQUEST_DENIED': 'Request denied. Please check API key.',
-    'INVALID_REQUEST': 'Invalid search request.',
-    'UNKNOWN_ERROR': 'An unknown error occurred.'
+    ZERO_RESULTS: "No places found for your search.",
+    OVER_QUERY_LIMIT: "Too many requests. Please try again later.",
+    REQUEST_DENIED: "Request denied. Please check API key.",
+    INVALID_REQUEST: "Invalid search request.",
+    UNKNOWN_ERROR: "An unknown error occurred.",
   };
-  
-  return errorMessages[status] || 'Search failed. Please try again.';
+
+  return errorMessages[status] || "Search failed. Please try again.";
 };
 ```
 
@@ -326,7 +342,7 @@ const mapLibraries = ["places"];
   loadingElement={<div>Loading Map...</div>}
 >
   <GoogleMap {...mapProps} />
-</LoadScript>
+</LoadScript>;
 ```
 
 ### 2. **Marker Clustering**
@@ -337,36 +353,36 @@ import { MarkerClusterer } from "@react-google-maps/api";
 
 <MarkerClusterer
   options={{
-    imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+    imagePath:
+      "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m",
     maxZoom: 15,
-    gridSize: 50
+    gridSize: 50,
   }}
 >
   {(clusterer) =>
     places.map((place, index) => (
-      <Marker
-        key={index}
-        position={place.position}
-        clusterer={clusterer}
-      />
+      <Marker key={index} position={place.position} clusterer={clusterer} />
     ))
   }
-</MarkerClusterer>
+</MarkerClusterer>;
 ```
 
 ### 3. **Search Debouncing**
 
 ```javascript
 // Prevent excessive API calls during typing
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef } from "react";
 
 const useDebounce = (callback, delay) => {
   const timeoutRef = useRef(null);
-  
-  return useCallback((...args) => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => callback(...args), delay);
-  }, [callback, delay]);
+
+  return useCallback(
+    (...args) => {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => callback(...args), delay);
+    },
+    [callback, delay]
+  );
 };
 
 const debouncedSearch = useDebounce(handleSearch, 500);
@@ -382,6 +398,7 @@ REACT_APP_GOOGLE_MAPS_API_KEY=your_api_key_here
 ```
 
 **Security Considerations**:
+
 - API key is exposed in client-side code
 - Consider implementing server-side proxy for production
 - Use API key restrictions (HTTP referrers, IP addresses)
@@ -389,6 +406,7 @@ REACT_APP_GOOGLE_MAPS_API_KEY=your_api_key_here
 ### 2. **API Key Restrictions**
 
 **Recommended Google Cloud Console settings**:
+
 - **Application restrictions**: HTTP referrers
 - **Allowed referrers**: Your domain(s)
 - **API restrictions**: Maps JavaScript API, Places API
@@ -446,11 +464,11 @@ const mockGoogle = {
     places: {
       PlacesService: jest.fn(),
       PlacesServiceStatus: {
-        OK: 'OK',
-        ZERO_RESULTS: 'ZERO_RESULTS'
-      }
-    }
-  }
+        OK: "OK",
+        ZERO_RESULTS: "ZERO_RESULTS",
+      },
+    },
+  },
 };
 
 window.google = mockGoogle;
@@ -474,16 +492,16 @@ User Input → Service Category Selection → Map Search → AI Integration → 
 
 ```javascript
 // Navigation from other pages to map
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const navigate = useNavigate();
 
 const openMapWithService = (serviceType) => {
-  navigate('/map', { 
-    state: { 
+  navigate("/map", {
+    state: {
       searchQuery: serviceType,
-      autoSearch: true 
-    } 
+      autoSearch: true,
+    },
   });
 };
 ```
@@ -532,11 +550,11 @@ Static Business Data ←→ Maps API Results ←→ AI Recommendations
 
 ```javascript
 // Check API key configuration
-console.log('API Key:', process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
+console.log("API Key:", process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
 
 // Verify API enablement
 if (!window.google) {
-  console.error('Google Maps API not loaded');
+  console.error("Google Maps API not loaded");
 }
 ```
 
@@ -545,8 +563,8 @@ if (!window.google) {
 ```javascript
 // Debug Places API status
 service.textSearch(request, (results, status) => {
-  console.log('Places API Status:', status);
-  console.log('Results:', results);
+  console.log("Places API Status:", status);
+  console.log("Results:", results);
 });
 ```
 
