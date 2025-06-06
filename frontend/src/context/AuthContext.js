@@ -12,10 +12,11 @@ import { auth } from "../firebase/config";
 import axios from "axios";
 
 // Use environment-specific API URLs
-const API_BASE_URL = process.env.REACT_APP_API_URL ||
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
   (process.env.NODE_ENV === "production"
     ? "https://your-backend-url.com/api"
-    : "http://localhost:5001/api"); // Backend API running on port 5001 for development
+    : "http://localhost:5555/api"); // Backend API running on port 5555 for development
 const API_URL = `${API_BASE_URL}/users`;
 
 const AuthContext = createContext();
@@ -205,38 +206,47 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await axios.put(
           `${API_URL}/role`,
-        { role },
-        {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        }
-      );
-        console.log('Role updated successfully for existing user:', user.uid, 'to role:', role);
-        
+          { role },
+          {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          }
+        );
+        console.log(
+          "Role updated successfully for existing user:",
+          user.uid,
+          "to role:",
+          role
+        );
+
         // Update local state immediately
         setCurrentUserRole(role);
         if (userProfile) {
           setUserProfile({ ...userProfile, role });
         }
-        
+
         return response.data;
       } catch (error) {
-        console.error('Error updating role:', error.response?.status, error.response?.data);
-        
+        console.error(
+          "Error updating role:",
+          error.response?.status,
+          error.response?.data
+        );
+
         // If user doesn't exist (404), create them first
         if (error.response && error.response.status === 404) {
-          console.log('User not found in database, creating user:', user.uid);
-          
+          console.log("User not found in database, creating user:", user.uid);
+
           try {
             // Create user in database first
             const createResponse = await axios.post(
               `${API_URL}/register`,
               {
-                name: user.displayName || 'User',
+                name: user.displayName || "User",
                 email: user.email,
                 firebaseUid: user.uid,
-                authProvider: user.providerData[0]?.providerId || 'email',
+                authProvider: user.providerData[0]?.providerId || "email",
                 role: role,
               },
               {
@@ -245,30 +255,40 @@ export const AuthProvider = ({ children }) => {
                 },
               }
             );
-            console.log('User created successfully in database:', user.uid, 'with role:', role);
-            
+            console.log(
+              "User created successfully in database:",
+              user.uid,
+              "with role:",
+              role
+            );
+
             // Update local state
             setCurrentUserRole(role);
             setUserProfile(createResponse.data);
-            
+
             return createResponse.data;
           } catch (createError) {
-            console.error('Error creating user:', createError);
-            throw new Error('Failed to create user account. Please try again.');
+            console.error("Error creating user:", createError);
+            throw new Error("Failed to create user account. Please try again.");
           }
         } else if (error.response && error.response.status === 400) {
           // Handle validation errors
-          throw new Error(error.response.data.message || 'Invalid role selection. Please try again.');
+          throw new Error(
+            error.response.data.message ||
+              "Invalid role selection. Please try again."
+          );
         } else if (error.response && error.response.status >= 500) {
           // Handle server errors
-          throw new Error('Server error. Please try again later.');
+          throw new Error("Server error. Please try again later.");
         } else {
           // Handle other errors
-          throw new Error('Failed to assign role. Please check your connection and try again.');
+          throw new Error(
+            "Failed to assign role. Please check your connection and try again."
+          );
         }
       }
     } catch (error) {
-      console.error('Error setting user role:', error);
+      console.error("Error setting user role:", error);
       // Don't update local state if there was an error
       throw error;
     }
@@ -303,15 +323,11 @@ export const AuthProvider = ({ children }) => {
 
       const idToken = await user.getIdToken();
 
-      const response = await axios.put(
-        `${API_URL}/profile`,
-        profileData,
-        {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        }
-      );
+      const response = await axios.put(`${API_URL}/profile`, profileData, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
 
       // Update local userProfile state
       setUserProfile(response.data);
@@ -335,18 +351,14 @@ export const AuthProvider = ({ children }) => {
       const idToken = await user.getIdToken();
       const formData = new FormData();
 
-      formData.append('avatar', file);
-      
-      const response = await axios.post(
-        `${API_URL}/upload-avatar`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
+      formData.append("avatar", file);
+
+      const response = await axios.post(`${API_URL}/upload-avatar`, formData, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       // Update local userProfile state
       setUserProfile(response.data);
@@ -366,7 +378,6 @@ export const AuthProvider = ({ children }) => {
 
       const idToken = await user.getIdToken();
 
-      
       // Delete from MongoDB first
       await axios.delete(`${API_URL}/delete`, {
         headers: {
@@ -376,12 +387,11 @@ export const AuthProvider = ({ children }) => {
 
       // Then delete from Firebase
       await user.delete();
-      
+
       // Clear local state
       setCurrentUser(null);
       setCurrentUserRole(null);
       setUserProfile(null);
-
     } catch (error) {
       console.error("Error deleting account:", error);
       throw error;
@@ -392,27 +402,31 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log('Auth state changed - user signed in:', user.uid, user.email);
+        console.log(
+          "Auth state changed - user signed in:",
+          user.uid,
+          user.email
+        );
         setCurrentUser(user);
-        
+
         try {
           // Get fresh ID token and store it
           const idToken = await user.getIdToken(true); // Force refresh
-          localStorage.setItem('token', idToken);
-          console.log('Token stored in localStorage');
-          
+          localStorage.setItem("token", idToken);
+          console.log("Token stored in localStorage");
+
           // Get user profile from MongoDB
           const response = await axios.get(`${API_URL}/profile`, {
             headers: {
               Authorization: `Bearer ${idToken}`,
             },
           });
-          
+
           setUserProfile(response.data);
           setCurrentUserRole(response.data.role);
-          console.log('User profile loaded:', response.data);
+          console.log("User profile loaded:", response.data);
         } catch (error) {
-          console.error('Error loading user profile:', error);
+          console.error("Error loading user profile:", error);
           // Still set the user as signed in, just without profile data
           setCurrentUserRole(null);
           setUserProfile(null);
@@ -420,11 +434,11 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Only clear state if not in guest mode
         if (currentUser && currentUser.uid !== "guest") {
-          console.log('Auth state changed - user signed out');
+          console.log("Auth state changed - user signed out");
           setCurrentUser(null);
           setCurrentUserRole(null);
           setUserProfile(null);
-          localStorage.removeItem('token'); // Remove token on signout
+          localStorage.removeItem("token"); // Remove token on signout
         }
       }
       setLoading(false);

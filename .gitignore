@@ -29,6 +29,7 @@ yarn-error.log*
 
 # firebase / google cloud credentials
 **/serviceAccountKey.json
+**/serviceAccountKey*.json
 **/firebase-admin*.json
 **/firebase-config*.json
 **/*.key.json
